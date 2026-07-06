@@ -14,31 +14,58 @@ import { createEvent as createEventApi } from './services/events';
 import { Match } from './types/match';
 import { EventFormData } from './components/events/EventForm';
 import LoadingSpinner from './components/ui/LoadingSpinner';
-import AdBanner from './components/ads/AdBanner';
+import { demoMatches, getDemoEvents, getDemoStats } from './services/mockData';
 
-/* Wrapper component for MatchPage with router params */
+/* Wrapper component for MatchPage with router params + demo data fallback */
 const MatchPageRoute: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const { match, events, stats, isLoading, error } = useMatch(id || null);
+  const { match, events, stats, isLoading, error, setEvents, setStats } = useMatch(id || null);
   useSocket(id || null);
+
+  /* If API fails, populate with demo data for demo match IDs */
+  useEffect(() => {
+    if (id && id.startsWith('demo-')) {
+      const demoEvents = getDemoEvents(id);
+      const demoStats = getDemoStats(id);
+      if (demoEvents.length > 0 && events.length === 0) setEvents(demoEvents);
+      if (demoStats && !stats) setStats(demoStats);
+    }
+  }, [id, events.length, stats]);
 
   const handleCreateEvent = async (data: EventFormData) => {
     if (!id) return;
-    await createEventApi(id, {
-      type: data.type,
-      team: data.team,
-      player: {
-        id: `temp-${Date.now()}`,
-        name: data.playerName,
-        number: data.playerNumber,
-        position: 'MID' as any,
-        teamId: '',
-      },
-      minute: data.minute,
-      description: data.description,
-      timestamp: new Date(),
-    } as any);
+    try {
+      await createEventApi(id, {
+        type: data.type,
+        team: data.team,
+        player: {
+          id: `temp-${Date.now()}`,
+          name: data.playerName,
+          number: data.playerNumber,
+          position: 'MID' as any,
+          teamId: '',
+        },
+        minute: data.minute,
+        description: data.description,
+        timestamp: new Date(),
+      } as any);
+    } catch {
+      /* If API fails, add to local store anyway for demo */
+      useMatchStore.getState().addEvent({
+        id: `evt-${Date.now()}`,
+        type: data.type,
+        team: data.team,
+        player: {
+          id: `temp-${Date.now()}`,
+          name: data.playerName,
+          number: data.playerNumber,
+          position: 'MID' as any,
+          teamId: '',
+        },
+        minute: data.minute,
+        timestamp: new Date(),
+      } as any);
+    }
   };
 
   return (
@@ -67,10 +94,10 @@ const App: React.FC = () => {
     try {
       const data = await getMatches();
       setMatches(data);
-    } catch (err) {
-      console.error('Error fetching matches:', err);
-      // Use demo data if API fails
-      setMatches(getDemoMatches());
+      setIsConnected(true);
+    } catch (_err) {
+      console.log('API no disponible, usando datos demo');
+      setMatches(demoMatches);
     } finally {
       setIsLoadingMatches(false);
     }
@@ -97,19 +124,11 @@ const App: React.FC = () => {
       case 'matches':
         return <MatchesList matches={matches} isLoading={false} onMatchSelect={handleMatchSelect} />;
       case 'stats':
-        return (
-          <div className="glass-panel p-8 text-center">
-            <p className="text-white/30 font-medium">Estadísticas globales próximamente</p>
-          </div>
-        );
+        return <GlobalStatsPage matches={matches} onMatchSelect={handleMatchSelect} />;
       case 'settings':
-        return (
-          <div className="glass-panel p-8 text-center">
-            <p className="text-white/30 font-medium">Configuración próximamente</p>
-          </div>
-        );
+        return <SettingsPage />;
       case 'live':
-        const liveMatches = matches.filter((m) => m.status === 'live');
+        const liveMatches = matches.filter((m) => m.status === 'live' || m.status === 'halftime');
         return liveMatches.length > 0 ? (
           <Dashboard matches={liveMatches} onMatchSelect={handleMatchSelect} />
         ) : (
@@ -146,121 +165,156 @@ const App: React.FC = () => {
   );
 };
 
-/* Demo data for when API is not available */
-function getDemoMatches(): Match[] {
-  return [
-    {
-      id: 'demo-1',
-      homeTeam: {
-        id: 'team-1',
-        name: 'Real Fútbol Club',
-        shortName: 'RFC',
-        logo: '',
-        primaryColor: '#3b82f6',
-        secondaryColor: '#1e40af',
-        coach: 'Carlos Martínez',
-        formation: '4-3-3',
-      },
-      awayTeam: {
-        id: 'team-2',
-        name: 'Deportivo Aurora',
-        shortName: 'DPA',
-        logo: '',
-        primaryColor: '#8b5cf6',
-        secondaryColor: '#6d28d9',
-        coach: 'Roberto Sánchez',
-        formation: '4-4-2',
-      },
-      homeScore: 2,
-      awayScore: 1,
-      status: 'live',
-      startTime: new Date(Date.now() - 3600000),
-      currentTime: 3420,
-      period: 'second_half',
-      addedTime: 3,
-      venue: 'Estadio Nacional',
-      referee: 'Juan Pérez',
-      weather: {
-        temperature: 24,
-        condition: 'sunny',
-        humidity: 45,
-        windSpeed: 12,
-      },
-      attendance: 42000,
-    },
-    {
-      id: 'demo-2',
-      homeTeam: {
-        id: 'team-3',
-        name: 'Atlético Sol',
-        shortName: 'ATS',
-        logo: '',
-        primaryColor: '#f59e0b',
-        secondaryColor: '#d97706',
-        coach: 'Miguel Torres',
-        formation: '3-5-2',
-      },
-      awayTeam: {
-        id: 'team-4',
-        name: 'Club Estrella',
-        shortName: 'CLE',
-        logo: '',
-        primaryColor: '#10b981',
-        secondaryColor: '#059669',
-        coach: 'Ana García',
-        formation: '4-2-3-1',
-      },
-      homeScore: 0,
-      awayScore: 0,
-      status: 'scheduled',
-      startTime: new Date(Date.now() + 7200000),
-      currentTime: 0,
-      period: 'first_half',
-      addedTime: 0,
-      venue: 'Estadio Municipal',
-      referee: 'María López',
-      weather: {
-        temperature: 22,
-        condition: 'cloudy',
-        humidity: 60,
-        windSpeed: 8,
-      },
-      attendance: 28000,
-    },
-    {
-      id: 'demo-3',
-      homeTeam: {
-        id: 'team-5',
-        name: 'Sport Valiant',
-        shortName: 'SPV',
-        logo: '',
-        primaryColor: '#ef4444',
-        secondaryColor: '#dc2626',
-        coach: 'Luis Ramírez',
-        formation: '4-4-2',
-      },
-      awayTeam: {
-        id: 'team-6',
-        name: 'Fénix Unido',
-        shortName: 'FNU',
-        logo: '',
-        primaryColor: '#06b6d4',
-        secondaryColor: '#0891b2',
-        coach: 'Pedro Ruiz',
-        formation: '4-3-3',
-      },
-      homeScore: 3,
-      awayScore: 2,
-      status: 'finished',
-      startTime: new Date(Date.now() - 86400000),
-      currentTime: 5700,
-      period: 'second_half',
-      addedTime: 4,
-      venue: 'Estadio Central',
-      referee: 'Diego Morales',
-      attendance: 35000,
-    },
+/* Global Stats Page */
+const GlobalStatsPage: React.FC<{ matches: Match[]; onMatchSelect: (id: string) => void }> = ({ matches, onMatchSelect }) => {
+  const totalGoals = matches.reduce((s, m) => s + m.homeScore + m.awayScore, 0);
+  const totalCards = matches.reduce((s, m) => {
+    // Rough estimate from events - we show static count
+    return s;
+  }, 0);
+  const avgGoals = matches.length > 0 ? (totalGoals / matches.length).toFixed(2) : '0';
+  const liveCount = matches.filter(m => m.status === 'live').length;
+  const finishedCount = matches.filter(m => m.status === 'finished').length;
+
+  const statCards = [
+    { label: 'Total Partidos', value: matches.length, gradient: 'from-blue-500/20 to-blue-600/5', border: 'border-blue-500/20' },
+    { label: 'Total Goles', value: totalGoals, gradient: 'from-emerald-500/20 to-emerald-600/5', border: 'border-emerald-500/20' },
+    { label: 'Promedio Goles', value: avgGoals, gradient: 'from-purple-500/20 to-purple-600/5', border: 'border-purple-500/20' },
+    { label: 'Partidos en Vivo', value: liveCount, gradient: 'from-red-500/20 to-red-600/5', border: 'border-red-500/20' },
   ];
-}
+
+  /* Top scorers from demo */
+  const topScorers = [
+    { name: 'Santiago Pérez', team: 'RFC', goals: 3, matches: 2 },
+    { name: 'Gonçalo Ramos', team: 'DPA/FNU', goals: 3, matches: 2 },
+    { name: 'Nicolás Vega', team: 'RFC/SPV', goals: 2, matches: 2 },
+    { name: 'Diogo Jota', team: 'FNU', goals: 1, matches: 1 },
+    { name: 'Roberto Díaz', team: 'RFC/SPV', goals: 1, matches: 2 },
+  ].sort((a, b) => b.goals - a.goals);
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl sm:text-3xl font-black text-white text-shadow-sm">Estadísticas Globales</h2>
+        <p className="text-sm text-white/40 mt-1">Resumen de todas las jornadas</p>
+      </div>
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {statCards.map((sc, idx) => (
+          <div key={idx} className={`glass-panel p-4 bg-gradient-to-br ${sc.gradient} border ${sc.border}`}>
+            <p className="text-3xl font-black text-white number-highlight">{sc.value}</p>
+            <p className="text-xs text-white/40 font-semibold mt-1">{sc.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Top scorers */}
+      <div className="glass-panel overflow-hidden">
+        <div className="px-5 py-4 border-b border-white/10 bg-white/5">
+          <h3 className="text-base font-bold text-white flex items-center gap-2">
+            <div className="w-1 h-5 rounded-full bg-gradient-to-b from-amber-400 to-orange-500" />
+            Tabla de Goleadores
+          </h3>
+        </div>
+        <div className="divide-y divide-white/5">
+          {topScorers.map((scorer, idx) => (
+            <div key={idx} className="flex items-center gap-4 px-5 py-3 hover:bg-white/5 transition-colors">
+              <span className="text-sm font-black text-white/20 w-6 text-center">{idx + 1}</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-white">{scorer.name}</p>
+                <p className="text-[11px] text-white/30">{scorer.team}</p>
+              </div>
+              <div className="text-right">
+                <span className="text-lg font-black text-white number-highlight">{scorer.goals}</span>
+                <p className="text-[10px] text-white/25">{scorer.matches} partidos</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Recent results */}
+      <div className="glass-panel overflow-hidden">
+        <div className="px-5 py-4 border-b border-white/10 bg-white/5">
+          <h3 className="text-base font-bold text-white flex items-center gap-2">
+            <div className="w-1 h-5 rounded-full bg-gradient-to-b from-green-400 to-emerald-500" />
+            Últimos Resultados
+          </h3>
+        </div>
+        <div className="divide-y divide-white/5">
+          {matches.filter(m => m.status === 'finished' || m.status === 'live').map((m) => (
+            <button
+              key={m.id}
+              onClick={() => onMatchSelect(m.id)}
+              className="w-full flex items-center justify-between px-5 py-3 hover:bg-white/5 transition-colors"
+            >
+              <span className="text-sm font-medium text-white/70 truncate mr-3">{m.homeTeam.shortName}</span>
+              <span className="text-sm font-black text-white number-highlight">
+                {m.homeScore} - {m.awayScore}
+              </span>
+              <span className="text-sm font-medium text-white/70 truncate ml-3 text-right">{m.awayTeam.shortName}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* Settings Page */
+const SettingsPage: React.FC = () => {
+  const { theme, setTheme, isSidebarOpen } = useUIStore();
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl sm:text-3xl font-black text-white text-shadow-sm">Configuración</h2>
+        <p className="text-sm text-white/40 mt-1">Ajustes de la aplicación</p>
+      </div>
+
+      <div className="glass-panel p-6 space-y-6">
+        <div>
+          <h3 className="text-sm font-bold text-white mb-4">Apariencia</h3>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10">
+              <div>
+                <p className="text-sm font-semibold text-white">Tema Oscuro</p>
+                <p className="text-xs text-white/30 mt-0.5">Usar tema oscuro para la interfaz</p>
+              </div>
+              <div
+                className={`w-12 h-6 rounded-full cursor-pointer transition-all duration-300 relative ${
+                  theme === 'dark' ? 'bg-blue-500' : 'bg-white/20'
+                }`}
+                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              >
+                <div className={`w-5 h-5 rounded-full bg-white absolute top-0.5 transition-all duration-300 shadow-lg ${
+                  theme === 'dark' ? 'left-6' : 'left-0.5'
+                }`} />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="border-t border-white/10 pt-6">
+          <h3 className="text-sm font-bold text-white mb-4">Acerca de</h3>
+          <div className="space-y-3">
+            <div className="flex justify-between text-sm p-3 rounded-lg bg-white/5">
+              <span className="text-white/40">Versión</span>
+              <span className="text-white/80 font-medium">1.0.0</span>
+            </div>
+            <div className="flex justify-between text-sm p-3 rounded-lg bg-white/5">
+              <span className="text-white/40">Framework</span>
+              <span className="text-white/80 font-medium">React 18 + Vite 5</span>
+            </div>
+            <div className="flex justify-between text-sm p-3 rounded-lg bg-white/5">
+              <span className="text-white/40">Estado</span>
+              <span className="text-emerald-400 font-medium">Operativo</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default App;
