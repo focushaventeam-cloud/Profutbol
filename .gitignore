@@ -50,7 +50,12 @@ test
 prompt
 
 server.log
-# Skills directory
-/skills/tool-results/
+# Skills directory (local dev tools, not part of the app)
+/skills/
+skills/
+
+# Design docs with template literals that break Jekyll
+LEEME.md
+
 tool-results/
 upload/
