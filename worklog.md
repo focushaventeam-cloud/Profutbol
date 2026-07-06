@@ -22,3 +22,26 @@ Stage Summary:
 - Diseño actualizado a glassmorphism gris según especificación del léeme
 - 28 archivos modificados, 25 componentes reestilizados
 - LEEME.md agregado al repo como referencia
+
+---
+Task ID: Stadium Display Rebuild
+Agent: Main Agent
+Task: Reconstruir como marcador de PANTALLA DE ESTADIO (no web app)
+
+Work Log:
+- Eliminada toda la interfaz web (header, footer, tabs, dashboard, settings)
+- Reescrito page.tsx como StadiumDisplay completo según léeme
+- Layout: Ad Top → Logos 44x44 | Marcador 9xl | Cronómetro 5xl | Stats → Timeline → Ad Bottom
+- Cronómetro en vivo con auto-avance (segundos reales), pausa en 45' y 90'
+- Timeline horizontal con 11 eventos, tooltips hover, indicadores equipo
+- Espacios publicitarios rotativos (3 ads, 8s interval)
+- Parallax + bokeh de estadio inline (luces de grada)
+- Demo: Real Madrid 3-2 FC Barcelona, 2do Tiempo, En Vivo
+- Layout simplificado: solo <html><body>{children}</body></html>
+- Build 1.4MB, deploy exitoso a gh-pages
+
+Stage Summary:
+- URL: https://focushaventeam-cloud.github.io/Profutbol/
+- Es un MARCADOR DE ESTADIO, no una página web
+- Commit: 567e632 (main), e0b2f53 (gh-pages)
+- Verificado: HTML contiene todo el marcador completo
