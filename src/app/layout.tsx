@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 
@@ -9,8 +9,15 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Profutbol — Marcador de Fútbol",
-  description: "Sistema de Marcación para Ligas de Fútbol — Pantalla de Estadio",
+  title: "Profutbol — Marcador de Estadio",
+  description: "Sistema profesional de marcación para pantallas de estadio y cancha de fútbol",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({
@@ -21,7 +28,7 @@ export default function RootLayout({
   return (
     <html lang="es" className="dark" suppressHydrationWarning>
       <body
-        className={`${inter.variable} antialiased bg-[#0a1628] text-white overflow-hidden`}
+        className={`${inter.variable} antialiased bg-[#0a1628] text-white`}
         style={{ fontFamily: "'Inter', system-ui, -apple-system, sans-serif" }}
       >
         {children}

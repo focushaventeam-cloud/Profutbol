@@ -1,511 +1,112 @@
 @import "tailwindcss";
-@import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-inter);
-  --font-mono: var(--font-geist-mono);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+@theme {
+  --color-stadium-bg: #0a1628;
+  --color-stadium-dark: #060e1a;
+  --color-glass: rgba(255, 255, 255, 0.08);
+  --color-glass-hover: rgba(255, 255, 255, 0.15);
+  --color-glass-border: rgba(255, 255, 255, 0.15);
+  --color-glass-border-hover: rgba(255, 255, 255, 0.25);
+  --color-accent: #3b82f6;
+  --color-accent-light: #60a5fa;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
-:root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+* {
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+body {
+  font-family: var(--font-sans);
+  background: var(--color-stadium-bg);
+  color: white;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-}
-
-/* ============================================
-   Profutbol — Custom Animations (Gray Glassmorphism)
-   ============================================ */
-
-@keyframes pulse-live {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.3);
-  }
-}
-
-@keyframes slide-up {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes score-flash {
-  0% {
-    transform: scale(1);
-    text-shadow: none;
-  }
-  50% {
-    transform: scale(1.3);
-    text-shadow: 0 0 20px rgba(59, 130, 246, 0.6), 0 0 40px rgba(59, 130, 246, 0.3);
-  }
-  100% {
-    transform: scale(1);
-    text-shadow: none;
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
-}
-
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-@keyframes glow-pulse {
-  0%,
-  100% {
-    box-shadow: 0 0 5px rgba(59, 130, 246, 0.2), 0 0 10px rgba(59, 130, 246, 0.1);
-  }
-  50% {
-    box-shadow: 0 0 15px rgba(59, 130, 246, 0.4), 0 0 30px rgba(59, 130, 246, 0.2), 0 0 45px rgba(59, 130, 246, 0.1);
-  }
-}
-
-@keyframes gradient-shift {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-/* ============================================
-   Profutbol — Parallax & Bokeh Animations
-   ============================================ */
-
-@keyframes parallaxShift {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
-@keyframes bokehFloat {
-  0% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-20px);
-  }
-  100% {
-    transform: translateY(0);
-  }
-}
-
-@keyframes pulseSlow {
-  0% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.7;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-
-/* ============================================
-   Profutbol — Gray Glassmorphism Panel System
-   ============================================ */
-
-.glass-panel-main {
+/* Glass panels */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 1rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
-.glass-panel-stats {
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+.glass-panel-strong {
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.glass-input {
   background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 1rem;
-}
-
-.glass-panel-event {
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.13);
-  border-radius: 0.75rem;
-}
-
-.glass-button {
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
   transition: all 0.2s ease;
 }
 
-.glass-button:hover {
-  background: rgba(255, 255, 255, 0.25);
-}
-
-.ad-space {
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px dashed rgba(255, 255, 255, 0.2);
-  border-radius: 0.75rem;
-}
-
-/* ============================================
-   Profutbol — Glass Morphism Utilities
-   ============================================ */
-
-.glass {
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-}
-
-.glass-strong {
-  backdrop-filter: blur(40px);
-  -webkit-backdrop-filter: blur(40px);
+.glass-input:focus {
   background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+  border-color: rgba(59, 130, 246, 0.5);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  outline: none;
 }
 
-.glass-card {
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 1rem;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+/* Parallax background */
+.parallax-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(30, 58, 138, 0.4) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(30, 58, 138, 0.3) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, rgba(30, 58, 138, 0.2) 0%, transparent 50%),
+    linear-gradient(135deg, #0a1628 0%, #1e3a8a 50%, #0a1628 100%);
+  animation: parallaxShift 20s ease-in-out infinite;
 }
 
-/* ============================================
-   Profutbol — Glass Variants
-   ============================================ */
-
-.glass-frosted {
-  backdrop-filter: blur(32px) saturate(1.5);
-  -webkit-backdrop-filter: blur(32px) saturate(1.5);
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.08) 0%,
-    rgba(255, 255, 255, 0.02) 100%
-  );
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
-}
-
-.glass-deep {
-  backdrop-filter: blur(48px) saturate(1.8);
-  -webkit-backdrop-filter: blur(48px) saturate(1.8);
-  background: linear-gradient(
-    160deg,
-    rgba(255, 255, 255, 0.06) 0%,
-    rgba(255, 255, 255, 0.01) 50%,
-    rgba(255, 255, 255, 0.04) 100%
-  );
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow:
-    0 20px 60px -12px rgba(0, 0, 0, 0.4),
-    inset 0 2px 0 rgba(255, 255, 255, 0.04);
-}
-
-.glass-live {
-  backdrop-filter: blur(20px) saturate(1.4);
-  -webkit-backdrop-filter: blur(20px) saturate(1.4);
-  background: linear-gradient(
-    135deg,
-    rgba(239, 68, 68, 0.06) 0%,
-    rgba(255, 255, 255, 0.03) 100%
-  );
-  border: 1px solid rgba(239, 68, 68, 0.12);
-  box-shadow:
-    0 8px 24px -4px rgba(239, 68, 68, 0.08),
-    inset 0 1px 0 rgba(239, 68, 68, 0.04);
-  animation: live-glass-pulse 3s ease-in-out infinite;
-}
-
-@keyframes live-glass-pulse {
-  0%, 100% { border-color: rgba(239, 68, 68, 0.12); }
-  50% { border-color: rgba(239, 68, 68, 0.25); }
-}
-
-/* ============================================
-   Profutbol — Gradient Text Utilities (Blue only)
-   ============================================ */
-
-.text-gradient {
-  background: linear-gradient(to right, #93c5fd, #60a5fa, #3b82f6);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.text-gradient-warm {
-  background: linear-gradient(to right, #93c5fd, #60a5fa);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-/* ============================================
-   Profutbol — Live Indicator
-   ============================================ */
-
-.live-dot {
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 9999px;
-  background: #ef4444;
-  animation: pulse-live 1.5s infinite;
-  position: relative;
-}
-
-.live-dot::after {
-  content: "";
-  position: absolute;
-  inset: -4px;
-  border-radius: 9999px;
-  border: 2px solid rgba(239, 68, 68, 0.4);
-  animation: pulse-live 1.5s infinite;
-}
-
-/* ============================================
-   Profutbol — Score Display
-   ============================================ */
-
-.score-display {
-  font-size: 3rem;
-  font-weight: 900;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-}
-
-@media (min-width: 768px) {
-  .score-display {
-    font-size: 4.5rem;
+@keyframes parallaxShift {
+  0%, 100% {
+    background-position: 0% 50%;
+    transform: scale(1);
+  }
+  50% {
+    background-position: 100% 50%;
+    transform: scale(1.05);
   }
 }
 
-/* ============================================
-   Profutbol — Football Pitch Background
-   ============================================ */
-
-.pitch-bg {
-  background:
-    radial-gradient(ellipse 60% 40% at 50% 50%, rgba(34, 197, 94, 0.08) 0%, transparent 70%),
-    radial-gradient(ellipse 30% 50% at 10% 50%, rgba(34, 197, 94, 0.05) 0%, transparent 60%),
-    radial-gradient(ellipse 30% 50% at 90% 50%, rgba(34, 197, 94, 0.05) 0%, transparent 60%),
-    linear-gradient(180deg, #052e16 0%, #064e3b 50%, #052e16 100%);
+/* Bokeh effect */
+.stadium-bokeh {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.1) 0%, transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+  filter: blur(60px);
+  animation: bokehFloat 15s ease-in-out infinite;
 }
 
-/* ============================================
-   Profutbol — Stat Comparison Bar (Blue gradient)
-   ============================================ */
-
-.stat-bar {
-  position: relative;
-  height: 8px;
-  border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.06);
-  overflow: hidden;
+@keyframes bokehFloat {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(-20px, -20px); }
 }
 
-.stat-bar::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  border-radius: 9999px;
-  background: linear-gradient(90deg, #60a5fa, #3b82f6);
-  transition: width 0.6s ease;
-}
-
-/* ============================================
-   Profutbol — Event Timeline Line (Blue)
-   ============================================ */
-
-.event-line {
-  position: relative;
-}
-
-.event-line::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 2px;
-  height: 100%;
-  background: linear-gradient(180deg, transparent, rgba(96, 165, 250, 0.4), rgba(59, 130, 246, 0.4), transparent);
-  border-radius: 1px;
-}
-
-/* ============================================
-   Profutbol — Custom Scrollbar
-   ============================================ */
-
+/* Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
   background: rgba(255, 255, 255, 0.05);
-  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -517,656 +118,106 @@
   background: rgba(255, 255, 255, 0.3);
 }
 
-/* Firefox scrollbar */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.05);
+/* Text shadows for stadium readability */
+.text-shadow-sm {
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-/* ============================================
-   Profutbol — Background Dot Pattern
-   ============================================ */
-
-.bg-pattern {
-  background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-  background-size: 24px 24px;
-}
-
-/* ============================================
-   Profutbol — Pitch Gradient (Formation View)
-   ============================================ */
-
-.pitch-gradient {
-  background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
-    linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
-    linear-gradient(
-      180deg,
-      #052e16 0%,
-      #064e3b 15%,
-      #065f46 30%,
-      #064e3b 50%,
-      #065f46 70%,
-      #064e3b 85%,
-      #052e16 100%
-    );
-  background-size: 25% 100%, 100% 25%, 100% 100%;
-  border-radius: 0.75rem;
-  position: relative;
-}
-
-/* Centre circle hint */
-.pitch-gradient::before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 20%;
-  aspect-ratio: 1;
-  border-radius: 9999px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  pointer-events: none;
-}
-
-/* Centre line */
-.pitch-gradient::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: rgba(255, 255, 255, 0.06);
-  pointer-events: none;
-}
-
-/* ============================================
-   Profutbol — Player Rating Color Classes
-   ============================================ */
-
-.rating-excellent {
-  color: #93c5fd;
-}
-
-.rating-good {
-  color: #60a5fa;
-}
-
-.rating-average {
-  color: #fbbf24;
-}
-
-.rating-poor {
-  color: #fb923c;
-}
-
-.rating-bad {
-  color: #f87171;
-}
-
-/* ============================================
-   Profutbol — Enhanced Tab Styling (Blue)
-   ============================================ */
-
-[data-state="active"].tab-active-emerald {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(59, 130, 246, 0.08));
-  color: #60a5fa;
-  border-bottom: 2px solid #3b82f6;
-  box-shadow: 0 1px 0 0 #3b82f6, 0 4px 12px -2px rgba(59, 130, 246, 0.15);
-}
-
-[data-state="active"].tab-active-red {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.08));
-  color: #f87171;
-  border-bottom: 2px solid #ef4444;
-  box-shadow: 0 1px 0 0 #ef4444, 0 4px 12px -2px rgba(239, 68, 68, 0.15);
-}
-
-/* ============================================
-   Profutbol — Stat Label Styling
-   ============================================ */
-
-.stat-label {
-  font-size: 0.65rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: rgba(255, 255, 255, 0.4);
-  white-space: nowrap;
-}
-
-.stat-value {
-  font-size: 0.8125rem;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.9);
-  font-variant-numeric: tabular-nums;
-}
-
-.stat-value-leading {
-  color: #ffffff;
-}
-
-.stat-value-trailing {
-  color: rgba(255, 255, 255, 0.45);
-}
-
-/* ============================================
-   Profutbol — Score Pulse Animation (Blue)
-   ============================================ */
-
-@keyframes score-pulse-glow {
-  0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
-  70% { box-shadow: 0 0 0 12px rgba(59, 130, 246, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
-}
-
-.score-pulse {
-  animation: score-pulse-glow 0.8s ease-out;
-}
-
-/* ============================================
-   Profutbol — Glass Card Hover (Blue)
-   ============================================ */
-
-.glass-card-hover {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.glass-card-hover:hover {
-  border-color: rgba(59, 130, 246, 0.2);
-  box-shadow:
-    0 4px 24px -4px rgba(0, 0, 0, 0.3),
-    0 0 0 1px rgba(59, 130, 246, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.03);
-  transform: translateY(-1px);
-}
-
-/* ============================================
-   Profutbol — Toast Notifications
-   ============================================ */
-
-@keyframes toast-in {
-  from {
-    opacity: 0;
-    transform: translateY(-16px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-@keyframes toast-out {
-  from {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(-16px) scale(0.95);
-  }
-}
-
-.toast-enter {
-  animation: toast-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-
-.toast-exit {
-  animation: toast-out 0.25s ease-in forwards;
-}
-
-/* ============================================
-   Profutbol — Shimmer Loading
-   ============================================ */
-
-@keyframes cms-shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
-.shimmer {
-  background: linear-gradient(90deg,
-    rgba(255, 255, 255, 0.03) 25%,
-    rgba(255, 255, 255, 0.08) 50%,
-    rgba(255, 255, 255, 0.03) 75%
-  );
-  background-size: 200% 100%;
-  animation: cms-shimmer 1.5s infinite;
-  border-radius: 0.5rem;
-}
-
-/* ============================================
-   Profutbol — Gradient Border (Blue)
-   ============================================ */
-
-.gradient-border {
-  position: relative;
-}
-
-.gradient-border::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.3), transparent 50%, rgba(96, 165, 250, 0.2));
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
-}
-
-/* ============================================
-   Profutbol — Inner Glow Effect (Blue)
-   ============================================ */
-
-.glass-inner-glow {
-  position: relative;
-}
-
-.glass-inner-glow::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: radial-gradient(ellipse at 30% 0%, rgba(59, 130, 246, 0.06) 0%, transparent 60%);
-  pointer-events: none;
-}
-
-/* ============================================
-   Profutbol — Noise Texture Overlay
-   ============================================ */
-
-.noise-overlay::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  opacity: 0.015;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
-  pointer-events: none;
-}
-
-/* ============================================
-   Profutbol — Animated Number Counter
-   ============================================ */
-
-@keyframes count-up {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.animated-number {
-  animation: count-up 0.4s ease-out;
-}
-
-/* ============================================
-   Profutbol — Enhanced Card Hover (Spotlight)
-   ============================================ */
-
-.card-spotlight {
-  position: relative;
-  overflow: hidden;
-}
-
-.card-spotlight::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.03), transparent);
-  transition: left 0.6s ease;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.card-spotlight:hover::before {
-  left: 100%;
-}
-
-/* ============================================
-   Profutbol — Possession Bar (Blue tones)
-   ============================================ */
-
-.possession-bar {
-  height: 10px;
-  border-radius: 9999px;
-  overflow: hidden;
-  display: flex;
-  position: relative;
-}
-
-.possession-bar > .home-possession {
-  background: linear-gradient(90deg, #60a5fa, #3b82f6);
-  border-radius: 9999px 0 0 9999px;
-  transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.possession-bar > .away-possession {
-  background: linear-gradient(90deg, #93c5fd, #60a5fa);
-  border-radius: 0 9999px 9999px 0;
-  transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-/* ============================================
-   Profutbol — Tab Scrollbar Hide
-   ============================================ */
-
-.hide-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-
-/* ============================================
-   Profutbol — Parallax Scroll Layers
-   ============================================ */
-
-.parallax-layer-1 {
-  will-change: transform;
-  transition: transform 0.1s linear;
-}
-
-.parallax-layer-2 {
-  will-change: transform;
-  transition: transform 0.2s linear;
-}
-
-.parallax-layer-3 {
-  will-change: transform;
-  transition: transform 0.3s linear;
-}
-
-/* ============================================
-   Profutbol — Breathing Glow (Blue)
-   ============================================ */
-
-@keyframes breathe {
-  0%, 100% {
-    opacity: 0.03;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.08;
-    transform: scale(1.05);
-  }
-}
-
-.breathe-glow {
-  animation: breathe 6s ease-in-out infinite;
+.text-shadow-md {
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
 }
 
-.breathe-glow-slow {
-  animation: breathe 10s ease-in-out infinite;
+.text-shadow-lg {
+  text-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
 }
 
-/* ============================================
-   Profutbol — Neon Text Glow (Blue)
-   ============================================ */
-
-.neon-emerald {
-  text-shadow: none;
-}
-
-.neon-cyan {
-  text-shadow: none;
-}
-
-.neon-red {
-  text-shadow: none;
-}
-
-/* ============================================
-   Profutbol — 3D Card Tilt Effect
-   ============================================ */
-
-.card-3d {
-  transform-style: preserve-3d;
-  perspective: 1000px;
-  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.card-3d:hover {
-  transform: perspective(1000px) rotateX(1deg) rotateY(-1deg) translateY(-2px);
-}
-
-/* ============================================
-   Profutbol — Floating Label Tag
-   ============================================ */
-
-@keyframes float-tag {
-  0%, 100% { transform: translateY(0) rotate(-1deg); }
-  50% { transform: translateY(-3px) rotate(1deg); }
-}
-
-.float-tag {
-  animation: float-tag 4s ease-in-out infinite;
-}
-
-/* ============================================
-   Profutbol — Progress Ring
-   ============================================ */
-
-@keyframes progress-fill {
-  from { stroke-dashoffset: 283; }
+/* Animations */
+@keyframes scoreFlash {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
 }
 
-.progress-ring-circle {
-  transition: stroke-dashoffset 0.8s cubic-bezier(0.22, 1, 0.36, 1);
-  transform: rotate(-90deg);
-  transform-origin: 50% 50%;
+.animate-score-flash {
+  animation: scoreFlash 0.4s ease-in-out;
 }
 
-/* ============================================
-   Profutbol — Ripple Effect
-   ============================================ */
-
-.ripple {
-  position: relative;
-  overflow: hidden;
-}
-
-.ripple::after {
-  content: "";
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  pointer-events: none;
-  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.1) 10%, transparent 10%);
-  background-repeat: no-repeat;
-  background-position: 50%;
-  transform: scale(10, 10);
-  opacity: 0;
-  transition: transform 0.5s, opacity 0.8s;
-}
-
-.ripple:active::after {
-  transform: scale(0, 0);
-  opacity: 1;
-  transition: 0s;
-}
-
-/* ============================================
-   Profutbol — Grid Background Pattern
-   ============================================ */
-
-.grid-pattern {
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-  background-size: 40px 40px;
-}
-
-/* ============================================
-   Profutbol — Horizontal Rule Glow (Blue)
-   ============================================ */
-
-.divider-glow {
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(59, 130, 246, 0.3) 20%,
-    rgba(96, 165, 250, 0.3) 50%,
-    rgba(59, 130, 246, 0.3) 80%,
-    transparent
-  );
-  border: none;
-}
-
-/* ============================================
-   Profutbol — Magnetic Hover
-   ============================================ */
-
-.magnetic-hover {
-  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-/* ============================================
-   Profutbol — Match Status Pill Styles
-   ============================================ */
-
-.status-pill-live {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.05));
-  border: 1px solid rgba(239, 68, 68, 0.2);
-  color: #f87171;
+@keyframes slideInUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
-.status-pill-halftime {
-  background: linear-gradient(135deg, rgba(251, 191, 36, 0.15), rgba(251, 191, 36, 0.05));
-  border: 1px solid rgba(251, 191, 36, 0.2);
-  color: #fbbf24;
+.animate-slide-in-up {
+  animation: slideInUp 0.4s ease-out;
 }
 
-.status-pill-finished {
-  background: linear-gradient(135deg, rgba(148, 163, 184, 0.15), rgba(148, 163, 184, 0.05));
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  color: #94a3b8;
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+  50% { box-shadow: 0 0 20px 4px rgba(59, 130, 246, 0.3); }
 }
 
-.status-pill-scheduled {
-  background: linear-gradient(135deg, rgba(96, 165, 250, 0.15), rgba(96, 165, 250, 0.05));
-  border: 1px solid rgba(96, 165, 250, 0.2);
-  color: #60a5fa;
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
 }
-
-/* ============================================
-   Profutbol — Confetti / Celebration
-   ============================================ */
 
-@keyframes confetti-fall {
-  0% {
-    transform: translateY(-100%) rotate(0deg);
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(100vh) rotate(720deg);
-    opacity: 0;
-  }
+/* Ad space */
+.ad-space {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px dashed rgba(255, 255, 255, 0.2);
 }
 
-.confetti-piece {
-  position: fixed;
-  width: 8px;
+/* Stat bars */
+.stat-bar {
   height: 8px;
-  z-index: 9999;
-  pointer-events: none;
-  animation: confetti-fall 3s ease-in forwards;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
 }
 
-/* ============================================
-   Profutbol — Loading Skeleton Enhanced
-   ============================================ */
-
-.skeleton-pulse {
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.03) 25%,
-    rgba(255, 255, 255, 0.07) 50%,
-    rgba(255, 255, 255, 0.03) 75%
-  );
-  background-size: 200% 100%;
-  animation: cms-shimmer 1.5s infinite;
-  border-radius: 0.5rem;
+.stat-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #60a5fa, #3b82f6);
+  transition: width 1s ease-out;
 }
 
-/* ============================================
-   Profutbol — Scroll Progress Indicator (Blue)
-   ============================================ */
-
-.scroll-progress {
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 2px;
-  background: linear-gradient(90deg, #3b82f6, #60a5fa, #93c5fd);
-  z-index: 9999;
-  transition: width 0.1s linear;
+/* Card indicator */
+.card-yellow {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: #000;
 }
 
-/* ============================================
-   Profutbol — Focus Ring Enhancement (Blue)
-   ============================================ */
-
-.focus-glow:focus-visible {
-  outline: none;
-  box-shadow:
-    0 0 0 2px rgba(59, 130, 246, 0.3),
-    0 0 12px rgba(59, 130, 246, 0.1);
+.card-red {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: #fff;
 }
 
-/* ============================================
-   Profutbol — Selection Color (Blue)
-   ============================================ */
-
-::selection {
-  background: rgba(59, 130, 246, 0.3);
-  color: white;
+/* Custom number input spinners hidden */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
-/* ============================================
-   Profutbol — Smooth Page Transitions
-   ============================================ */
-
-.page-enter {
-  animation: page-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+input[type="number"] {
+  -moz-appearance: textfield;
 }
 
-.page-exit {
-  animation: page-out 0.25s ease-in forwards;
+/* Display mode specific */
+.display-mode {
+  overflow: hidden;
+  cursor: none;
+  user-select: none;
 }
 
-@keyframes page-in {
-  from {
-    opacity: 0;
-    transform: translateY(12px) scale(0.99);
-    filter: blur(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-    filter: blur(0);
-  }
+.control-mode {
+  overflow-y: auto;
 }
 
-@keyframes page-out {
-  from {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-    filter: blur(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(-8px) scale(0.99);
-    filter: blur(4px);
-  }
+/* Tab active indicator */
+.tab-active {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: rgba(59, 130, 246, 0.5);
+  color: #60a5fa;
 }
