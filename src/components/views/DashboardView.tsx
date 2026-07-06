@@ -100,14 +100,14 @@ export default function DashboardView() {
         >
           {/* Ambient glow */}
           <div className="absolute -top-20 -right-20 h-40 w-40 rounded-full bg-red-500/10 blur-[80px] pointer-events-none group-hover:bg-red-500/15 transition-colors duration-700" />
-          <div className="absolute -bottom-20 -left-20 h-40 w-40 rounded-full bg-emerald-500/8 blur-[80px] pointer-events-none" />
+          <div className="absolute -bottom-20 -left-20 h-40 w-40 rounded-full bg-blue-500/8 blur-[80px] pointer-events-none" />
 
           <div className="relative p-5 sm:p-6">
             {/* Live indicator row */}
             <div className="flex items-center gap-3 mb-4">
               <span className="relative flex size-3">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
-                <span className="relative inline-flex size-3 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]" />
+                <span className="relative inline-flex size-3 rounded-full bg-red-500" />
               </span>
               <span className="text-xs font-extrabold text-red-400 tracking-[0.15em] uppercase">
                 EN VIVO
@@ -182,12 +182,12 @@ export default function DashboardView() {
               </div>
               <div className="flex items-center gap-3 text-[11px]">
                 {liveMatches[0].events.filter(e => e.type === 'goal' && e.team === 'home').map(e => (
-                  <span key={e.id} className="text-emerald-400/80 font-medium">⚽ {e.player?.name.split(' ').pop() ?? ''} {e.minute}&apos;</span>
+                  <span key={e.id} className="text-blue-400/80 font-medium">⚽ {e.player?.name.split(' ').pop() ?? ''} {e.minute}&apos;</span>
                 ))}
               </div>
               <div className="flex items-center gap-3 text-[11px]">
                 {liveMatches[0].events.filter(e => e.type === 'goal' && e.team === 'away').map(e => (
-                  <span key={e.id} className="text-cyan-400/80 font-medium">⚽ {e.player?.name.split(' ').pop() ?? ''} {e.minute}&apos;</span>
+                  <span key={e.id} className="text-blue-400/80 font-medium">⚽ {e.player?.name.split(' ').pop() ?? ''} {e.minute}&apos;</span>
                 ))}
               </div>
             </div>
@@ -198,8 +198,8 @@ export default function DashboardView() {
       {/* Title + Search + Create */}
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-emerald-500/10">
-            <Flame className="w-5 h-5 text-emerald-400" />
+          <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-blue-500/10">
+            <Flame className="w-5 h-5 text-blue-400" />
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Partidos</h1>
         </div>
@@ -212,7 +212,7 @@ export default function DashboardView() {
               placeholder="Buscar equipo..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-9 w-36 sm:w-52 rounded-xl bg-white/5 border border-white/10 pl-9 pr-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-emerald-500/30 focus:bg-white/[0.07] focus:ring-1 focus:ring-emerald-500/20 transition-all"
+              className="h-9 w-36 sm:w-52 rounded-xl bg-white/5 border border-white/10 pl-9 pr-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-blue-500/30 focus:bg-white/[0.07] focus:ring-1 focus:ring-blue-500/20 transition-all"
             />
           </div>
           {/* Create Match */}
@@ -225,7 +225,7 @@ export default function DashboardView() {
         <TabsList className="bg-white/5 border border-white/10 h-10">
           <TabsTrigger
             value="todos"
-            className="text-white/60 data-[state=active]:bg-emerald-500/15 data-[state=active]:text-emerald-400 data-[state=active]:border-emerald-500/20"
+            className="text-white/60 data-[state=active]:bg-blue-500/15 data-[state=active]:text-blue-400 data-[state=active]:border-blue-500/20"
           >
             Todos
           </TabsTrigger>
@@ -246,7 +246,7 @@ export default function DashboardView() {
           </TabsTrigger>
           <TabsTrigger
             value="programados"
-            className="text-white/60 data-[state=active]:bg-cyan-500/15 data-[state=active]:text-cyan-400 data-[state=active]:border-cyan-500/20"
+            className="text-white/60 data-[state=active]:bg-blue-500/15 data-[state=active]:text-blue-400 data-[state=active]:border-blue-500/20"
           >
             Programados
           </TabsTrigger>
@@ -273,14 +273,14 @@ export default function DashboardView() {
         transition={{ duration: 0.4, delay: 0.2 }}
       >
         <h2 className="text-lg font-semibold text-white/90 mb-3 flex items-center gap-2">
-          <Activity className="w-5 h-5 text-emerald-400" />
+          <Activity className="w-5 h-5 text-blue-400" />
           Resumen Rápido
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <SummaryCard
             label="Partidos"
             value={matches.length}
-            icon={<Calendar className="w-5 h-5 text-cyan-400" />}
+            icon={<Calendar className="w-5 h-5 text-blue-400" />}
             accent="cyan"
           />
           <SummaryCard
@@ -292,7 +292,7 @@ export default function DashboardView() {
           <SummaryCard
             label="Goles Totales"
             value={totalGoals}
-            icon={<Target className="w-5 h-5 text-emerald-400" />}
+            icon={<Target className="w-5 h-5 text-blue-400" />}
             accent="emerald"
           />
           <SummaryCard
@@ -350,9 +350,9 @@ function SummaryCard({
   accent?: string;
 }) {
   const accentMap: Record<string, string> = {
-    emerald: 'from-emerald-500/10 to-emerald-500/5 border-emerald-500/10',
+    emerald: 'from-blue-500/10 to-blue-500/5 border-blue-500/10',
     red: 'from-red-500/10 to-red-500/5 border-red-500/10',
-    cyan: 'from-cyan-500/10 to-cyan-500/5 border-cyan-500/10',
+    cyan: 'from-blue-500/10 to-blue-500/5 border-blue-500/10',
     amber: 'from-amber-500/10 to-amber-500/5 border-amber-500/10',
   };
 

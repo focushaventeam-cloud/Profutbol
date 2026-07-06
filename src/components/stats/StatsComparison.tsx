@@ -66,13 +66,13 @@ export default function StatsComparison({
     <div className="glass-card p-5">
       {/* header with team names */}
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 px-1 pb-4 mb-1 border-b border-white/5">
-        <span className="text-xs font-bold text-emerald-400 text-right truncate tracking-wide uppercase">
+        <span className="text-xs font-bold text-blue-400 text-right truncate tracking-wide uppercase">
           {homeTeamName}
         </span>
         <span className="text-[10px] text-white/25 uppercase tracking-[0.15em] font-semibold">
           vs
         </span>
-        <span className="text-xs font-bold text-cyan-400 truncate tracking-wide uppercase">
+        <span className="text-xs font-bold text-blue-400 truncate tracking-wide uppercase">
           {awayTeamName}
         </span>
       </div>
@@ -120,8 +120,8 @@ export default function StatsComparison({
                       backgroundColor: isNeutral
                         ? 'rgba(148,163,184,0.25)'
                         : homeLeads
-                          ? 'rgba(52,211,153,0.65)'
-                          : 'rgba(52,211,153,0.2)',
+                          ? 'rgba(96,165,250,0.65)'
+                          : 'rgba(96,165,250,0.2)',
                     }}
                     initial={{ width: '0%' }}
                     animate={animate ? { width: `${homePct}%` } : { width: '0%' }}
@@ -146,8 +146,8 @@ export default function StatsComparison({
                       backgroundColor: isNeutral
                         ? 'rgba(148,163,184,0.25)'
                         : !homeLeads
-                          ? 'rgba(34,211,238,0.65)'
-                          : 'rgba(34,211,238,0.2)',
+                          ? 'rgba(59,130,246,0.65)'
+                          : 'rgba(59,130,246,0.2)',
                     }}
                     initial={{ width: '0%' }}
                     animate={animate ? { width: `${awayPct}%` } : { width: '0%' }}

@@ -142,10 +142,10 @@ export default function CreateMatchDialog() {
         onClick={() => setOpen(true)}
         className="
           flex items-center gap-2 px-5 py-2.5 rounded-xl
-          bg-emerald-500/15 border border-emerald-500/25
-          text-emerald-400 text-sm font-semibold
-          hover:bg-emerald-500/25 hover:border-emerald-500/35
-          hover:shadow-lg hover:shadow-emerald-500/10
+          bg-blue-500/15 border border-blue-500/25
+          text-blue-400 text-sm font-semibold
+          hover:bg-blue-500/25 hover:border-blue-500/35
+          hover:shadow-lg hover:shadow-blue-500/10
           transition-all duration-300 backdrop-blur-xl
         "
       >
@@ -157,7 +157,7 @@ export default function CreateMatchDialog() {
       <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) resetForm(); }}>
         <DialogContent
           className="
-            bg-[#0d1220]/95 backdrop-blur-2xl
+            bg-[#0a1628]/95 backdrop-blur-2xl
             border border-white/[0.08] rounded-2xl
             text-white shadow-2xl shadow-black/40
             sm:max-w-[520px] p-0 overflow-hidden
@@ -166,11 +166,11 @@ export default function CreateMatchDialog() {
         >
           {/* Header with gradient bar */}
           <div className="relative">
-            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-emerald-500/60 via-cyan-500/40 to-emerald-500/60" />
+            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-blue-500/60 via-blue-400/40 to-blue-500/60" />
             <DialogHeader className="p-6 pb-0">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/20 flex items-center justify-center">
-                  <Trophy className="w-5 h-5 text-emerald-400" />
+                <div className="w-10 h-10 rounded-xl bg-blue-500/15 border border-blue-500/20 flex items-center justify-center">
+                  <Trophy className="w-5 h-5 text-blue-400" />
                 </div>
                 <div>
                   <DialogTitle className="text-white text-lg font-bold">
@@ -213,7 +213,7 @@ export default function CreateMatchDialog() {
                       className="
                         w-full bg-white/[0.04] border-white/[0.08]
                         text-white hover:bg-white/[0.07]
-                        focus:border-emerald-500/40 focus:ring-emerald-500/20
+                        focus:border-blue-500/40 focus:ring-blue-500/20
                         h-11 rounded-xl
                       "
                     >
@@ -221,7 +221,7 @@ export default function CreateMatchDialog() {
                     </SelectTrigger>
                     <SelectContent
                       className="
-                        bg-[#0d1220]/98 backdrop-blur-2xl
+                        bg-[#0a1628]/98 backdrop-blur-2xl
                         border border-white/[0.08] rounded-xl
                         text-white
                       "
@@ -230,7 +230,7 @@ export default function CreateMatchDialog() {
                         <SelectItem
                           key={team.id}
                           value={team.id}
-                          className="rounded-lg py-2.5 px-3 text-sm focus:bg-white/[0.06] focus:text-emerald-400 cursor-pointer"
+                          className="rounded-lg py-2.5 px-3 text-sm focus:bg-white/[0.06] focus:text-blue-400 cursor-pointer"
                         >
                           <span className="flex items-center gap-2.5">
                             <span
@@ -264,7 +264,7 @@ export default function CreateMatchDialog() {
                           <span className="text-xs text-white/50 font-medium">
                             {homeTeam.shortName}
                           </span>
-                          <span className="text-[10px] text-emerald-400/60 ml-auto">
+                          <span className="text-[10px] text-blue-400/60 ml-auto">
                             LOCAL
                           </span>
                         </div>
@@ -283,7 +283,7 @@ export default function CreateMatchDialog() {
                       className="
                         w-full bg-white/[0.04] border-white/[0.08]
                         text-white hover:bg-white/[0.07]
-                        focus:border-emerald-500/40 focus:ring-emerald-500/20
+                        focus:border-blue-500/40 focus:ring-blue-500/20
                         h-11 rounded-xl
                       "
                     >
@@ -291,7 +291,7 @@ export default function CreateMatchDialog() {
                     </SelectTrigger>
                     <SelectContent
                       className="
-                        bg-[#0d1220]/98 backdrop-blur-2xl
+                        bg-[#0a1628]/98 backdrop-blur-2xl
                         border border-white/[0.08] rounded-xl
                         text-white
                       "
@@ -300,7 +300,7 @@ export default function CreateMatchDialog() {
                         <SelectItem
                           key={team.id}
                           value={team.id}
-                          className="rounded-lg py-2.5 px-3 text-sm focus:bg-white/[0.06] focus:text-emerald-400 cursor-pointer"
+                          className="rounded-lg py-2.5 px-3 text-sm focus:bg-white/[0.06] focus:text-blue-400 cursor-pointer"
                         >
                           <span className="flex items-center gap-2.5">
                             <span
@@ -334,7 +334,7 @@ export default function CreateMatchDialog() {
                           <span className="text-xs text-white/50 font-medium">
                             {awayTeam.shortName}
                           </span>
-                          <span className="text-[10px] text-cyan-400/60 ml-auto">
+                          <span className="text-[10px] text-blue-400/60 ml-auto">
                             VISITANTE
                           </span>
                         </div>
@@ -390,7 +390,7 @@ export default function CreateMatchDialog() {
                       bg-white/[0.04] border-white/[0.08]
                       text-white placeholder:text-white/20
                       hover:bg-white/[0.07]
-                      focus-visible:border-emerald-500/40 focus-visible:ring-emerald-500/20
+                      focus-visible:border-blue-500/40 focus-visible:ring-blue-500/20
                     "
                   />
                 </div>
@@ -413,7 +413,7 @@ export default function CreateMatchDialog() {
                       bg-white/[0.04] border-white/[0.08]
                       text-white placeholder:text-white/20
                       hover:bg-white/[0.07]
-                      focus-visible:border-emerald-500/40 focus-visible:ring-emerald-500/20
+                      focus-visible:border-blue-500/40 focus-visible:ring-blue-500/20
                     "
                   />
                 </div>
@@ -433,7 +433,7 @@ export default function CreateMatchDialog() {
                           flex w-full items-center gap-2.5 h-11 px-3 rounded-xl
                           bg-white/[0.04] border border-white/[0.08]
                           text-white hover:bg-white/[0.07]
-                          focus-visible:border-emerald-500/40 focus-visible:ring-emerald-500/20
+                          focus-visible:border-blue-500/40 focus-visible:ring-blue-500/20
                           focus-visible:outline-none focus-visible:ring-[3px]
                           transition-all text-sm
                         "
@@ -448,7 +448,7 @@ export default function CreateMatchDialog() {
                     </PopoverTrigger>
                     <PopoverContent
                       className="
-                        bg-[#0d1220]/98 backdrop-blur-2xl
+                        bg-[#0a1628]/98 backdrop-blur-2xl
                         border border-white/[0.08] rounded-xl
                         text-white w-auto p-0
                       "
@@ -481,9 +481,9 @@ export default function CreateMatchDialog() {
                           outside:
                             'day-outside text-white/15 aria-selected:text-white/15',
                           disabled: 'text-white/15 opacity-50',
-                          range_start: 'bg-emerald-500/20 text-emerald-400 rounded-l-md',
-                          range_end: 'bg-emerald-500/20 text-emerald-400 rounded-r-md',
-                          range_middle: 'bg-emerald-500/10 text-white/70',
+                          range_start: 'bg-blue-500/20 text-blue-400 rounded-l-md',
+                          range_end: 'bg-blue-500/20 text-blue-400 rounded-r-md',
+                          range_middle: 'bg-blue-500/10 text-white/70',
                           today: 'bg-white/[0.06] text-white rounded-md font-semibold',
                         }}
                       />
@@ -507,7 +507,7 @@ export default function CreateMatchDialog() {
                         w-full h-11 pl-10 rounded-xl
                         bg-white/[0.04] border-white/[0.08]
                         text-white hover:bg-white/[0.07]
-                        focus-visible:border-emerald-500/40 focus-visible:ring-emerald-500/20
+                        focus-visible:border-blue-500/40 focus-visible:ring-blue-500/20
                         [color-scheme:dark]
                       "
                     />
@@ -525,13 +525,13 @@ export default function CreateMatchDialog() {
                   exit={{ opacity: 0, y: 8 }}
                   transition={{ delay: 0.1 }}
                   className="
-                    rounded-xl border border-emerald-500/15 bg-emerald-500/[0.04]
+                    rounded-xl border border-blue-500/15 bg-blue-500/[0.04]
                     p-4 backdrop-blur-xl
                   "
                 >
                   <div className="flex items-center gap-2 mb-3">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                    <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-emerald-400/70">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-blue-400" />
+                    <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-blue-400/70">
                       Vista previa
                     </span>
                   </div>
@@ -560,7 +560,7 @@ export default function CreateMatchDialog() {
                       </span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 mt-2.5 pt-2.5 border-t border-emerald-500/10 text-[11px] text-white/35 font-medium">
+                  <div className="flex items-center gap-3 mt-2.5 pt-2.5 border-t border-blue-500/10 text-[11px] text-white/35 font-medium">
                     <span>{league}</span>
                     <span className="text-white/10">|</span>
                     <span>{stadium}</span>
@@ -597,11 +597,11 @@ export default function CreateMatchDialog() {
               disabled={!canSubmit}
               className="
                 flex-1 h-11 rounded-xl
-                bg-emerald-500/20 border border-emerald-500/25
-                text-emerald-400 hover:bg-emerald-500/30 hover:border-emerald-500/35
+                bg-blue-500/20 border border-blue-500/25
+                text-blue-400 hover:bg-blue-500/30 hover:border-blue-500/35
                 font-semibold text-sm
                 disabled:opacity-30 disabled:cursor-not-allowed
-                transition-all shadow-lg shadow-emerald-500/5
+                transition-all shadow-lg shadow-blue-500/5
               "
             >
               <Plus className="w-4 h-4" />

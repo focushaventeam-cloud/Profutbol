@@ -114,7 +114,7 @@ export default function ShareMatchButton({ match }: ShareMatchButtonProps) {
                   className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left group"
                 >
                   {copied ? (
-                    <Check className="size-4 text-emerald-400" />
+                    <Check className="size-4 text-blue-400" />
                   ) : (
                     <Copy className="size-4 text-white/50 group-hover:text-white/80 transition-colors" />
                   )}

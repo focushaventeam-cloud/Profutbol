@@ -37,7 +37,7 @@ export default function MatchDetailView() {
         <p className="text-white/40 text-lg">Partido no encontrado</p>
         <Button
           onClick={goBack}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white"
+          className="bg-blue-600 hover:bg-blue-700 text-white"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Volver
@@ -87,39 +87,39 @@ export default function MatchDetailView() {
         <TabsList className="bg-white/5 border border-white/10 h-10 w-full flex overflow-x-auto hide-scrollbar">
           <TabsTrigger
             value="eventos"
-            className="flex-1 text-white/60 data-[state=active]:bg-emerald-500/15 data-[state=active]:text-emerald-400 text-xs sm:text-sm whitespace-nowrap"
+            className="flex-1 text-white/60 data-[state=active]:bg-blue-500/15 data-[state=active]:text-blue-400 text-xs sm:text-sm whitespace-nowrap"
           >
             <MessageSquare className="w-3.5 h-3.5 mr-1 hidden sm:inline" />
             Eventos
           </TabsTrigger>
           <TabsTrigger
             value="comentario"
-            className="flex-1 text-white/60 data-[state=active]:bg-emerald-500/15 data-[state=active]:text-emerald-400 text-xs sm:text-sm whitespace-nowrap"
+            className="flex-1 text-white/60 data-[state=active]:bg-blue-500/15 data-[state=active]:text-blue-400 text-xs sm:text-sm whitespace-nowrap"
           >
             <Waves className="w-3.5 h-3.5 mr-1 hidden sm:inline" />
             En Vivo
           </TabsTrigger>
           <TabsTrigger
             value="estadisticas"
-            className="flex-1 text-white/60 data-[state=active]:bg-emerald-500/15 data-[state=active]:text-emerald-400 text-xs sm:text-sm whitespace-nowrap"
+            className="flex-1 text-white/60 data-[state=active]:bg-blue-500/15 data-[state=active]:text-blue-400 text-xs sm:text-sm whitespace-nowrap"
           >
             Estadísticas
           </TabsTrigger>
           <TabsTrigger
             value="alineaciones"
-            className="flex-1 text-white/60 data-[state=active]:bg-emerald-500/15 data-[state=active]:text-emerald-400 text-xs sm:text-sm whitespace-nowrap"
+            className="flex-1 text-white/60 data-[state=active]:bg-blue-500/15 data-[state=active]:text-blue-400 text-xs sm:text-sm whitespace-nowrap"
           >
             Alineaciones
           </TabsTrigger>
           <TabsTrigger
             value="jugadores"
-            className="flex-1 text-white/60 data-[state=active]:bg-emerald-500/15 data-[state=active]:text-emerald-400 text-xs sm:text-sm whitespace-nowrap"
+            className="flex-1 text-white/60 data-[state=active]:bg-blue-500/15 data-[state=active]:text-blue-400 text-xs sm:text-sm whitespace-nowrap"
           >
             Jugadores
           </TabsTrigger>
           <TabsTrigger
             value="historial"
-            className="flex-1 text-white/60 data-[state=active]:bg-emerald-500/15 data-[state=active]:text-emerald-400 text-xs sm:text-sm whitespace-nowrap"
+            className="flex-1 text-white/60 data-[state=active]:bg-blue-500/15 data-[state=active]:text-blue-400 text-xs sm:text-sm whitespace-nowrap"
           >
             <Swords className="w-3.5 h-3.5 mr-1 hidden sm:inline" />
             H2H

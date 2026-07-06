@@ -22,19 +22,16 @@ function ratingTier(rating: number) {
 }
 
 const tierColors: Record<string, string> = {
-  excellent: 'bg-emerald-500',
-  good: 'bg-cyan-500',
+  excellent: 'bg-blue-500',
+  good: 'bg-blue-400',
   average: 'bg-amber-500',
   poor: 'bg-orange-500',
   bad: 'bg-red-500',
 };
 
 const tierGlow: Record<string, string> = {
-  excellent: 'shadow-[0_0_10px_rgba(16,185,129,0.4)]',
-  good: 'shadow-[0_0_8px_rgba(34,211,238,0.3)]',
-  average: 'shadow-[0_0_6px_rgba(245,158,11,0.25)]',
-  poor: 'shadow-[0_0_6px_rgba(249,115,22,0.25)]',
-  bad: 'shadow-[0_0_6px_rgba(239,68,68,0.3)]',
+  excellent: '',
+  good: '',
 };
 
 const positionLabel: Record<string, string> = {
@@ -171,7 +168,7 @@ function PlayerRow({
 
       {/* sub indicators */}
       {isSubbedIn && (
-        <span className="text-emerald-400 text-xs font-bold shrink-0 leading-none">
+        <span className="text-blue-400 text-xs font-bold shrink-0 leading-none">
           ↑
         </span>
       )}
@@ -225,8 +222,8 @@ function AverageRating({
   const tier = ratingTier(avg);
 
   const colorMap: Record<string, string> = {
-    excellent: 'text-emerald-400',
-    good: 'text-cyan-400',
+    excellent: 'text-blue-400',
+    good: 'text-blue-400',
     average: 'text-amber-400',
     poor: 'text-orange-400',
     bad: 'text-red-400',

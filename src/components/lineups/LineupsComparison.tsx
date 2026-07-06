@@ -24,7 +24,7 @@ export default function LineupsComparison({ match }: LineupsComparisonProps) {
     >
       {/* Title */}
       <div className="mb-4 flex items-center gap-2 sm:mb-6">
-        <Users className="h-4 w-4 text-emerald-400" />
+        <Users className="h-4 w-4 text-blue-400" />
         <h3 className="text-base font-semibold text-white sm:text-lg">
           Alineaciones
         </h3>

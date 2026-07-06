@@ -24,7 +24,7 @@ function getEventIcon(type: MatchEvent['type']) {
   switch (type) {
     case 'goal':
     case 'penalty_goal':
-      return <Target className="size-3.5 text-emerald-400" />;
+      return <Target className="size-3.5 text-blue-400" />;
     case 'own_goal':
       return <Target className="size-3.5 text-amber-400" />;
     case 'yellow_card':
@@ -32,9 +32,9 @@ function getEventIcon(type: MatchEvent['type']) {
     case 'red_card':
       return <AlertTriangle className="size-3.5 text-red-400" />;
     case 'var_review':
-      return <Eye className="size-3.5 text-purple-400" />;
+      return <Eye className="size-3.5 text-blue-400" />;
     case 'substitution':
-      return <ArrowRightLeft className="size-3.5 text-cyan-400" />;
+      return <ArrowRightLeft className="size-3.5 text-blue-400" />;
     case 'injury':
       return <Clock className="size-3.5 text-orange-400" />;
   }
@@ -44,7 +44,7 @@ function getEventColor(type: MatchEvent['type']): string {
   switch (type) {
     case 'goal':
     case 'penalty_goal':
-      return 'border-emerald-500/20 bg-emerald-500/5';
+      return 'border-blue-500/20 bg-blue-500/5';
     case 'own_goal':
       return 'border-amber-500/20 bg-amber-500/5';
     case 'yellow_card':
@@ -52,9 +52,9 @@ function getEventColor(type: MatchEvent['type']): string {
     case 'red_card':
       return 'border-red-500/20 bg-red-500/5';
     case 'var_review':
-      return 'border-purple-500/20 bg-purple-500/5';
+      return 'border-blue-500/20 bg-blue-500/5';
     case 'substitution':
-      return 'border-cyan-500/20 bg-cyan-500/5';
+      return 'border-blue-500/20 bg-blue-500/5';
     case 'injury':
       return 'border-orange-500/20 bg-orange-500/5';
   }
@@ -111,7 +111,7 @@ export default function MatchNotificationsPanel() {
         className="relative text-white/50 hover:text-white/80 hover:bg-white/5 h-9 px-2 ripple"
       >
         {unreadCount > 0 ? (
-          <Bell className="size-4 text-emerald-400" />
+          <Bell className="size-4 text-blue-400" />
         ) : (
           <BellOff className="size-4" />
         )}
@@ -119,7 +119,7 @@ export default function MatchNotificationsPanel() {
           <motion.span
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            className="absolute -top-0.5 -right-0.5 flex size-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white shadow-[0_0_8px_rgba(239,68,68,0.5)]"
+            className="absolute -top-0.5 -right-0.5 flex size-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white"
           >
             {liveMatches.length}
           </motion.span>
@@ -178,7 +178,7 @@ export default function MatchNotificationsPanel() {
                       initial={{ opacity: 0, x: 10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.2, delay: i * 0.03 }}
-                      className={`flex items-start gap-2.5 p-2.5 rounded-xl border ${getEventColor(notif.type)} ${!notif.read ? 'ring-1 ring-emerald-500/10' : ''}`}
+                      className={`flex items-start gap-2.5 p-2.5 rounded-xl border ${getEventColor(notif.type)} ${!notif.read ? 'ring-1 ring-blue-500/10' : ''}`}
                     >
                       {getEventIcon(notif.type as MatchEvent['type'])}
                       <div className="min-w-0 flex-1">

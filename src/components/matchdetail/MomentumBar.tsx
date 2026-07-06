@@ -68,15 +68,15 @@ function getMarkerInfo(event: MatchEvent): Omit<MarkerData, 'minute' | 'team' | 
   switch (event.type) {
     case 'goal':
     case 'penalty_goal':
-      return { type: 'goal', label: 'Gol', iconColor: 'text-emerald-400' };
+      return { type: 'goal', label: 'Gol', iconColor: 'text-blue-400' };
     case 'own_goal':
-      return { type: 'goal', label: 'Gol en contra', iconColor: 'text-emerald-400' };
+      return { type: 'goal', label: 'Gol en contra', iconColor: 'text-blue-400' };
     case 'yellow_card':
       return { type: 'yellow_card', label: 'Tarjeta amarilla', iconColor: 'text-amber-400' };
     case 'red_card':
       return { type: 'red_card', label: 'Tarjeta roja', iconColor: 'text-red-400' };
     case 'var_review':
-      return { type: 'var_review', label: 'Revisión VAR', iconColor: 'text-purple-400' };
+      return { type: 'var_review', label: 'Revisión VAR', iconColor: 'text-blue-400' };
     default:
       return { type: 'other', label: event.description, iconColor: 'text-white/40' };
   }
@@ -192,7 +192,7 @@ export default function MomentumBar({ match }: MomentumBarProps) {
     >
       {/* Título */}
       <div className="mb-5 flex items-center gap-2">
-        <Zap className="h-4 w-4 text-emerald-400" />
+        <Zap className="h-4 w-4 text-blue-400" />
         <h3 className="text-base font-semibold text-white sm:text-lg">
           Momentum del Partido
         </h3>
@@ -200,13 +200,13 @@ export default function MomentumBar({ match }: MomentumBarProps) {
 
       {/* Nombres de equipos */}
       <div className="mb-4 grid grid-cols-[1fr_auto_1fr] items-center gap-3 px-1">
-        <span className="text-xs font-bold text-emerald-400 text-right truncate tracking-wide uppercase">
+        <span className="text-xs font-bold text-blue-400 text-right truncate tracking-wide uppercase">
           {match.homeTeam.shortName}
         </span>
         <span className="text-[10px] text-white/25 uppercase tracking-[0.15em] font-semibold">
           {totalMinutes}&apos;
         </span>
-        <span className="text-xs font-bold text-cyan-400 truncate tracking-wide uppercase">
+        <span className="text-xs font-bold text-blue-400 truncate tracking-wide uppercase">
           {match.awayTeam.shortName}
         </span>
       </div>
@@ -216,11 +216,11 @@ export default function MomentumBar({ match }: MomentumBarProps) {
         {/* Fondo de la barra */}
         <div className="relative h-10 w-full rounded-xl overflow-hidden bg-white/[0.04] border border-white/[0.06]">
           {/* Gradiente base neutral en el centro */}
-          <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/[0.08] via-transparent to-cyan-500/[0.08]" />
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/[0.08] via-transparent to-blue-500/[0.08]" />
 
           {/* Barra de momentum home (izquierda) */}
           <motion.div
-            className="absolute top-0 left-0 h-full bg-gradient-to-r from-emerald-600/70 to-emerald-500/50"
+            className="absolute top-0 left-0 h-full bg-gradient-to-r from-blue-600/70 to-blue-500/50"
             initial={{ width: '50%' }}
             animate={{ width: `${homePct}%` }}
             transition={{
@@ -232,7 +232,7 @@ export default function MomentumBar({ match }: MomentumBarProps) {
 
           {/* Barra de momentum away (derecha) */}
           <motion.div
-            className="absolute top-0 right-0 h-full bg-gradient-to-l from-cyan-600/70 to-cyan-500/50"
+            className="absolute top-0 right-0 h-full bg-gradient-to-l from-blue-600/70 to-blue-500/50"
             initial={{ width: '50%' }}
             animate={{ width: `${100 - homePct}%` }}
             transition={{
@@ -292,7 +292,7 @@ export default function MomentumBar({ match }: MomentumBarProps) {
                     </span>
                     <span
                       className={`text-[10px] font-medium ${
-                        isHome ? 'text-emerald-400' : 'text-cyan-400'
+                        isHome ? 'text-blue-400' : 'text-blue-400'
                       }`}
                     >
                       {isHome ? match.homeTeam.shortName : match.awayTeam.shortName}
@@ -343,9 +343,9 @@ export default function MomentumBar({ match }: MomentumBarProps) {
           <span
             className={`text-[11px] font-semibold ${
               homePct > 55
-                ? 'text-emerald-400'
+                ? 'text-blue-400'
                 : homePct < 45
-                  ? 'text-cyan-400'
+                  ? 'text-blue-400'
                   : 'text-white/40'
             }`}
           >
@@ -367,7 +367,7 @@ export default function MomentumBar({ match }: MomentumBarProps) {
         <LegendItem
           icon={<GoalIcon />}
           label="Gol"
-          colorClass="text-emerald-400"
+          colorClass="text-blue-400"
         />
         <LegendItem
           icon={<YellowCardIcon />}
@@ -382,14 +382,14 @@ export default function MomentumBar({ match }: MomentumBarProps) {
         <LegendItem
           icon={<VarIcon />}
           label="VAR"
-          colorClass="text-purple-400"
+          colorClass="text-blue-400"
         />
         <div className="flex items-center gap-1.5">
-          <div className="h-2.5 w-5 rounded-sm bg-gradient-to-r from-emerald-500/60 to-emerald-400/30" />
+          <div className="h-2.5 w-5 rounded-sm bg-gradient-to-r from-blue-500/60 to-blue-400/30" />
           <span className="text-[10px] text-white/30">Local</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="h-2.5 w-5 rounded-sm bg-gradient-to-l from-cyan-500/60 to-cyan-400/30" />
+          <div className="h-2.5 w-5 rounded-sm bg-gradient-to-l from-blue-500/60 to-blue-400/30" />
           <span className="text-[10px] text-white/30">Visitante</span>
         </div>
       </div>
@@ -436,8 +436,8 @@ function MarkerIcon({ type, colorClass }: { type: string; colorClass: string }) 
 // ---------- íconos de leyenda ----------
 function GoalIcon() {
   return (
-    <div className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-400/15">
-      <Circle className="h-2 w-2 text-emerald-400" fill="currentColor" />
+    <div className="flex h-4 w-4 items-center justify-center rounded-full bg-blue-400/15">
+      <Circle className="h-2 w-2 text-blue-400" fill="currentColor" />
     </div>
   );
 }
@@ -460,8 +460,8 @@ function RedCardIcon() {
 
 function VarIcon() {
   return (
-    <div className="flex h-4 w-4 items-center justify-center rounded-full bg-purple-400/15">
-      <Eye className="h-2 w-2 text-purple-400" />
+    <div className="flex h-4 w-4 items-center justify-center rounded-full bg-blue-400/15">
+      <Eye className="h-2 w-2 text-blue-400" />
     </div>
   );
 }

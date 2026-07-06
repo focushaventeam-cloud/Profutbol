@@ -120,7 +120,7 @@ export default function MatchControlPanel({ match }: { match: Match }) {
                 size="sm"
                 className={
                   match.status === 'live'
-                    ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                    ? 'bg-blue-600 hover:bg-blue-700 text-white'
                     : 'bg-white/5 hover:bg-white/10 text-white/70'
                 }
               >
@@ -259,7 +259,7 @@ export default function MatchControlPanel({ match }: { match: Match }) {
                   <Button
                     size="icon"
                     variant="outline"
-                    className="w-8 h-8 border-white/10 text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-300"
+                    className="w-8 h-8 border-white/10 text-blue-400 hover:bg-blue-500/10 hover:text-blue-300"
                     onClick={handleQuickGoal.bind(null, 'home')}
                   >
                     <Plus className="w-3 h-3" />
@@ -273,7 +273,7 @@ export default function MatchControlPanel({ match }: { match: Match }) {
                   <Button
                     size="icon"
                     variant="outline"
-                    className="w-8 h-8 border-white/10 text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-300"
+                    className="w-8 h-8 border-white/10 text-blue-400 hover:bg-blue-500/10 hover:text-blue-300"
                     onClick={handleQuickGoal.bind(null, 'away')}
                   >
                     <Plus className="w-3 h-3" />
@@ -302,7 +302,7 @@ export default function MatchControlPanel({ match }: { match: Match }) {
             <div className="grid grid-cols-2 gap-2">
               <Button
                 size="sm"
-                className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 justify-start"
+                className="bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20 justify-start"
                 onClick={handleQuickGoal.bind(null, 'home')}
               >
                 <Target className="w-3.5 h-3.5 mr-1.5" />
@@ -310,7 +310,7 @@ export default function MatchControlPanel({ match }: { match: Match }) {
               </Button>
               <Button
                 size="sm"
-                className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 justify-start"
+                className="bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20 justify-start"
                 onClick={handleQuickGoal.bind(null, 'away')}
               >
                 <Target className="w-3.5 h-3.5 mr-1.5" />

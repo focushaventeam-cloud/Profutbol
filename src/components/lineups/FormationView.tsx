@@ -40,7 +40,7 @@ function PlayerMarker({
   const markerClasses = substitutedOut
     ? 'opacity-50 border-dashed'
     : substitutedIn
-      ? 'ring-2 ring-emerald-400 animate-pulse'
+      ? 'ring-2 ring-blue-400 animate-pulse'
       : '';
 
   return (
@@ -81,7 +81,7 @@ function PlayerMarker({
             <span className={getRatingClass(p.rating)}>{p.rating.toFixed(1)}</span>
           </div>
           {substitutedIn && (
-            <span className="text-[10px] text-emerald-400">
+            <span className="text-[10px] text-blue-400">
               Entró min. {player.substitutedAtMinute}
             </span>
           )}

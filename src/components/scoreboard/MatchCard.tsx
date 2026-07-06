@@ -13,7 +13,7 @@ function StatusBadge({ status, minute }: { status: MatchStatus; minute: number }
         <Badge className="status-pill-live gap-1.5 px-2.5 py-0.5 text-[11px] font-semibold rounded-lg">
           <span className="relative flex size-2">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
-            <span className="relative inline-flex size-2 rounded-full bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]" />
+            <span className="relative inline-flex size-2 rounded-full bg-red-500" />
           </span>
           {minute}&apos;
         </Badge>
@@ -74,7 +74,7 @@ export default function MatchCard({ match }: { match: Match }) {
         transition-all duration-300 group
         ${isLive
           ? 'border-red-500/15 glass-live hover:border-red-500/25'
-          : 'border-white/[0.06] glass-card card-spotlight hover:border-emerald-500/20'
+          : 'border-white/[0.06] glass-card card-spotlight hover:border-blue-500/20'
         }
       `}
       onClick={() => selectMatch(match.id)}
@@ -86,7 +86,7 @@ export default function MatchCard({ match }: { match: Match }) {
       )}
       {/* Subtle top light for non-live */}
       {!isLive && (
-        <div className="absolute -top-10 left-1/2 -translate-x-1/2 h-20 w-60 rounded-full bg-emerald-500/[0.02] blur-[40px] pointer-events-none group-hover:bg-emerald-500/[0.04] transition-colors duration-500" />
+        <div className="absolute -top-10 left-1/2 -translate-x-1/2 h-20 w-60 rounded-full bg-blue-500/[0.02] blur-[40px] pointer-events-none group-hover:bg-blue-500/[0.04] transition-colors duration-500" />
       )}
 
       {/* League row */}
@@ -103,7 +103,7 @@ export default function MatchCard({ match }: { match: Match }) {
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <TeamLogo logo={match.homeTeam.logo} color={match.homeTeam.primaryColor} name={match.homeTeam.name} />
           <div className="min-w-0">
-            <p className={`font-bold text-sm sm:text-base truncate transition-colors ${homeLeading ? 'text-emerald-400' : 'text-white'}`}>
+            <p className={`font-bold text-sm sm:text-base truncate transition-colors ${homeLeading ? 'text-blue-400' : 'text-white'}`}>
               {match.homeTeam.shortName}
             </p>
             <p className="text-[11px] text-white/30 font-medium">Local</p>
@@ -114,8 +114,8 @@ export default function MatchCard({ match }: { match: Match }) {
         <div className="flex items-center gap-2.5 px-2">
           <motion.span
             key={`home-${match.homeScore}-${match.id}`}
-            initial={{ scale: 1.3, color: '#34d399' }}
-            animate={{ scale: 1, color: homeLeading ? '#34d399' : '#ffffff' }}
+            initial={{ scale: 1.3, color: '#60a5fa' }}
+            animate={{ scale: 1, color: homeLeading ? '#60a5fa' : '#ffffff' }}
             transition={{ type: 'spring', stiffness: 400, damping: 20 }}
             className="text-3xl sm:text-4xl font-black tabular-nums w-8 text-center"
           >
@@ -124,8 +124,8 @@ export default function MatchCard({ match }: { match: Match }) {
           <span className="text-lg text-white/15 font-extralight">:</span>
           <motion.span
             key={`away-${match.awayScore}-${match.id}`}
-            initial={{ scale: 1.3, color: '#34d399' }}
-            animate={{ scale: 1, color: awayLeading ? '#34d399' : '#ffffff' }}
+            initial={{ scale: 1.3, color: '#60a5fa' }}
+            animate={{ scale: 1, color: awayLeading ? '#60a5fa' : '#ffffff' }}
             transition={{ type: 'spring', stiffness: 400, damping: 20 }}
             className="text-3xl sm:text-4xl font-black tabular-nums w-8 text-center"
           >
@@ -136,7 +136,7 @@ export default function MatchCard({ match }: { match: Match }) {
         {/* Away team */}
         <div className="flex items-center gap-3 flex-1 min-w-0 justify-end">
           <div className="min-w-0 text-right">
-            <p className={`font-bold text-sm sm:text-base truncate transition-colors ${awayLeading ? 'text-emerald-400' : 'text-white'}`}>
+            <p className={`font-bold text-sm sm:text-base truncate transition-colors ${awayLeading ? 'text-blue-400' : 'text-white'}`}>
               {match.awayTeam.shortName}
             </p>
             <p className="text-[11px] text-white/30 font-medium">Visitante</p>

@@ -12,32 +12,54 @@ import SettingsView from '@/components/views/SettingsView';
 import { useAutoTimer } from '@/hooks/useAutoTimer';
 
 /* ================================================================== */
-/*  Star Field Component                                                */
+/*  Parallax Background Layer                                           */
 /* ================================================================== */
 
-function StarField() {
-  const stars = useMemo(() => {
-    return Array.from({ length: 40 }, (_, i) => ({
-      id: i,
-      left: `${Math.random() * 100}%`,
-      top: `${Math.random() * 100}%`,
-      delay: `${Math.random() * 10}s`,
-      size: Math.random() > 0.7 ? 3 : Math.random() > 0.4 ? 2 : 1,
-    }));
-  }, []);
+function ParallaxBackground() {
+  return (
+    <div
+      className="fixed inset-0 z-0 pointer-events-none"
+      style={{
+        background: [
+          'radial-gradient(ellipse at 20% 50%, rgba(30, 58, 138, 0.4) 0%, transparent 50%)',
+          'radial-gradient(ellipse at 80% 20%, rgba(30, 64, 175, 0.3) 0%, transparent 50%)',
+          'radial-gradient(ellipse at 40% 80%, rgba(29, 78, 216, 0.15) 0%, transparent 50%)',
+          'linear-gradient(135deg, #0a1628, #1e3a8a, #0a1628)',
+        ].join(', '),
+        animation: 'parallaxShift 20s ease-in-out infinite',
+      }}
+    />
+  );
+}
+
+/* ================================================================== */
+/*  Bokeh Effect Layer                                                  */
+/* ================================================================== */
+
+function BokehLayer() {
+  const bokehs = useMemo(() => [
+    { size: 300, top: '10%', left: '15%', opacity: 0.1, delay: '0s', duration: '15s' },
+    { size: 200, top: '60%', left: '70%', opacity: 0.08, delay: '3s', duration: '18s' },
+    { size: 250, top: '40%', left: '40%', opacity: 0.05, delay: '6s', duration: '15s' },
+    { size: 180, top: '80%', left: '20%', opacity: 0.08, delay: '2s', duration: '16s' },
+    { size: 220, top: '20%', left: '80%', opacity: 0.05, delay: '5s', duration: '17s' },
+  ], []);
 
   return (
-    <div className="starfield">
-      {stars.map((star) => (
+    <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+      {bokehs.map((b, i) => (
         <div
-          key={star.id}
-          className="star"
+          key={i}
+          className="absolute rounded-full"
           style={{
-            left: star.left,
-            top: star.top,
-            width: star.size,
-            height: star.size,
-            animationDelay: star.delay,
+            width: b.size,
+            height: b.size,
+            top: b.top,
+            left: b.left,
+            background: `radial-gradient(circle, rgba(255, 255, 255, ${b.opacity}) 0%, transparent 70%)`,
+            filter: 'blur(60px)',
+            animation: `bokehFloat ${b.duration} ease-in-out infinite`,
+            animationDelay: b.delay,
           }}
         />
       ))}
@@ -56,27 +78,15 @@ export default function Home() {
   useAutoTimer();
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0a0e1a] relative overflow-hidden">
-      {/* Layer 1: Star field (deepest, slowest parallax) */}
-      <StarField />
+    <div className="min-h-screen flex flex-col bg-[#0a1628] relative overflow-hidden">
+      {/* Layer 1: Parallax gradient background (deepest) */}
+      <ParallaxBackground />
 
-      {/* Layer 2: Aurora borealis effects */}
-      <div className="aurora parallax-layer-1" />
-      <div className="aurora-secondary parallax-layer-2" />
+      {/* Layer 2: Bokeh floating lights */}
+      <BokehLayer />
 
-      {/* Layer 3: Dot pattern + noise */}
+      {/* Layer 3: Subtle dot pattern + noise */}
       <div className="noise-overlay bg-pattern fixed inset-0 z-0 pointer-events-none" />
-
-      {/* Layer 4: Ambient floating orbs (mid parallax) */}
-      <div className="pointer-events-none fixed inset-0 z-0 parallax-layer-2">
-        <div className="absolute -top-40 -left-40 h-80 w-80 rounded-full bg-emerald-500/[0.07] blur-[120px] animate-float breathe-glow" />
-        <div className="absolute top-1/3 -right-32 h-96 w-96 rounded-full bg-cyan-500/[0.05] blur-[100px] animate-float [animation-delay:2s] breathe-glow" />
-        <div className="absolute -bottom-40 left-1/3 h-72 w-72 rounded-full bg-purple-500/[0.04] blur-[100px] animate-float [animation-delay:4s] breathe-glow-slow" />
-        <div className="absolute top-2/3 left-1/4 h-56 w-56 rounded-full bg-amber-500/[0.03] blur-[80px] animate-float [animation-delay:6s] breathe-glow-slow" />
-      </div>
-
-      {/* Layer 5: Grid pattern overlay (subtle) */}
-      <div className="pointer-events-none fixed inset-0 z-0 grid-pattern opacity-50" />
 
       {/* Main content */}
       <div className="relative z-10 flex min-h-screen flex-col">

@@ -29,13 +29,13 @@ const commentaryStyle: Record<
   string,
   { Icon: typeof Circle; colorClass: string; borderClass: string; bgClass: string }
 > = {
-  goal: { Icon: Goal, colorClass: 'text-emerald-400', borderClass: 'border-l-emerald-400', bgClass: 'bg-emerald-400/15' },
-  own_goal: { Icon: Goal, colorClass: 'text-emerald-400', borderClass: 'border-l-emerald-400', bgClass: 'bg-emerald-400/15' },
-  penalty_goal: { Icon: Goal, colorClass: 'text-emerald-400', borderClass: 'border-l-emerald-400', bgClass: 'bg-emerald-400/15' },
+  goal: { Icon: Goal, colorClass: 'text-blue-400', borderClass: 'border-l-blue-400', bgClass: 'bg-blue-400/15' },
+  own_goal: { Icon: Goal, colorClass: 'text-blue-400', borderClass: 'border-l-blue-400', bgClass: 'bg-blue-400/15' },
+  penalty_goal: { Icon: Goal, colorClass: 'text-blue-400', borderClass: 'border-l-blue-400', bgClass: 'bg-blue-400/15' },
   yellow_card: { Icon: Circle, colorClass: 'text-amber-400', borderClass: 'border-l-amber-400', bgClass: 'bg-amber-400/15' },
   red_card: { Icon: CircleOff, colorClass: 'text-red-400', borderClass: 'border-l-red-400', bgClass: 'bg-red-400/15' },
-  substitution: { Icon: ArrowLeftRight, colorClass: 'text-cyan-400', borderClass: 'border-l-cyan-400', bgClass: 'bg-cyan-400/15' },
-  var_review: { Icon: Eye, colorClass: 'text-purple-400', borderClass: 'border-l-purple-400', bgClass: 'bg-purple-400/15' },
+  substitution: { Icon: ArrowLeftRight, colorClass: 'text-blue-400', borderClass: 'border-l-blue-400', bgClass: 'bg-blue-400/15' },
+  var_review: { Icon: Eye, colorClass: 'text-blue-400', borderClass: 'border-l-blue-400', bgClass: 'bg-blue-400/15' },
   injury: { Icon: Circle, colorClass: 'text-orange-400', borderClass: 'border-l-orange-400', bgClass: 'bg-orange-400/15' },
   ambient: { Icon: MessageSquare, colorClass: 'text-white/50', borderClass: 'border-l-white/10', bgClass: 'bg-white/[0.03]' },
 };
@@ -407,7 +407,7 @@ export default function MatchCommentary({ match }: { match: Match }) {
           <div className="flex items-center gap-2">
             <span className="relative flex size-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
-              <span className="relative inline-flex size-2 rounded-full bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]" />
+              <span className="relative inline-flex size-2 rounded-full bg-red-500" />
             </span>
             <span className="text-[11px] font-bold text-red-400 uppercase tracking-wider">
               EN VIVO
@@ -470,7 +470,7 @@ export default function MatchCommentary({ match }: { match: Match }) {
                         border-l-2 ${borderClass}
                         bg-white/[0.02] hover:bg-white/[0.04]
                         transition-colors duration-200
-                        ${isGoal ? 'bg-emerald-500/[0.06] hover:bg-emerald-500/[0.08]' : ''}
+                        ${isGoal ? 'bg-blue-500/[0.06] hover:bg-blue-500/[0.08]' : ''}
                       `}
                     >
                       {/* Minute badge */}
@@ -479,13 +479,13 @@ export default function MatchCommentary({ match }: { match: Match }) {
                           className={`
                             flex items-center justify-center
                             min-w-[40px] h-7 px-1.5 rounded-md
-                            ${isGoal ? 'bg-emerald-500/20' : bgClass}
+                            ${isGoal ? 'bg-blue-500/20' : bgClass}
                           `}
                         >
                           <span
                             className={`
                               text-[11px] font-bold tabular-nums
-                              ${isGoal ? 'text-emerald-300' : colorClass}
+                              ${isGoal ? 'text-blue-300' : colorClass}
                             `}
                           >
                             {entry.minute}&apos;
@@ -498,7 +498,7 @@ export default function MatchCommentary({ match }: { match: Match }) {
                         className={`
                           shrink-0 flex items-center justify-center
                           w-7 h-7 rounded-lg mt-0.5
-                          ${isGoal ? 'bg-emerald-500/20' : bgClass}
+                          ${isGoal ? 'bg-blue-500/20' : bgClass}
                         `}
                       >
                         {entry.type === 'yellow_card' ? (
@@ -507,7 +507,7 @@ export default function MatchCommentary({ match }: { match: Match }) {
                           <div className="w-3.5 h-4.5 rounded-[3px] bg-red-500" />
                         ) : (
                           <Icon
-                            className={`h-3.5 w-3.5 ${isGoal ? 'text-emerald-300' : colorClass}`}
+                            className={`h-3.5 w-3.5 ${isGoal ? 'text-blue-300' : colorClass}`}
                             strokeWidth={isGoal ? 2.5 : 2}
                           />
                         )}
@@ -519,7 +519,7 @@ export default function MatchCommentary({ match }: { match: Match }) {
                           className={`
                             text-[13px] leading-relaxed
                             ${isGoal
-                              ? 'text-emerald-200/90 font-semibold'
+                              ? 'text-blue-200/90 font-semibold'
                               : entry.type === 'ambient'
                                 ? 'text-white/45 italic text-[12px]'
                                 : 'text-white/80'

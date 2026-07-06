@@ -23,15 +23,15 @@ export function useToast() {
 }
 
 const iconMap: Record<ToastType, React.ReactNode> = {
-  success: <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />,
+  success: <CheckCircle className="w-4 h-4 text-blue-400 shrink-0" />,
   warning: <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />,
-  info: <Info className="w-4 h-4 text-cyan-400 shrink-0" />,
+  info: <Info className="w-4 h-4 text-blue-400 shrink-0" />,
 };
 
 const borderMap: Record<ToastType, string> = {
-  success: 'border-emerald-500/20 bg-emerald-500/[0.07]',
+  success: 'border-blue-500/20 bg-blue-500/[0.07]',
   warning: 'border-amber-500/20 bg-amber-500/[0.07]',
-  info: 'border-cyan-500/20 bg-cyan-500/[0.07]',
+  info: 'border-blue-500/20 bg-blue-500/[0.07]',
 };
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {

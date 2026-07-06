@@ -22,13 +22,13 @@ const iconMap: Record<
 > = {
   goal: {
     Icon: Circle,
-    colorClass: 'text-emerald-400',
-    bgClass: 'bg-emerald-400/20',
+    colorClass: 'text-blue-400',
+    bgClass: 'bg-blue-400/20',
   },
   own_goal: {
     Icon: CircleOff,
-    colorClass: 'text-emerald-400',
-    bgClass: 'bg-emerald-400/20',
+    colorClass: 'text-blue-400',
+    bgClass: 'bg-blue-400/20',
   },
   yellow_card: {
     Icon: Square,
@@ -47,13 +47,13 @@ const iconMap: Record<
   },
   penalty_goal: {
     Icon: Target,
-    colorClass: 'text-emerald-400',
-    bgClass: 'bg-emerald-400/20',
+    colorClass: 'text-blue-400',
+    bgClass: 'bg-blue-400/20',
   },
   var_review: {
     Icon: Eye,
-    colorClass: 'text-purple-400',
-    bgClass: 'bg-purple-400/20',
+    colorClass: 'text-blue-400',
+    bgClass: 'bg-blue-400/20',
   },
   injury: {
     Icon: Circle,
@@ -97,13 +97,13 @@ export default function EventTimeline({
       <ScrollArea className="max-h-96" type="scroll">
         {/* header row */}
         <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 px-2 pb-3">
-          <span className="text-xs font-semibold text-emerald-400 text-right truncate">
+          <span className="text-xs font-semibold text-blue-400 text-right truncate">
             {homeTeamName}
           </span>
           <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
             Min
           </span>
-          <span className="text-xs font-semibold text-cyan-400 truncate">
+          <span className="text-xs font-semibold text-blue-400 truncate">
             {awayTeamName}
           </span>
         </div>
@@ -265,7 +265,7 @@ function SubstitutionText({
       className="flex items-center gap-1 text-[11px] leading-tight"
       dir={direction}
     >
-      <span className="text-emerald-400 font-medium truncate max-w-[70px]">
+      <span className="text-blue-400 font-medium truncate max-w-[70px]">
         ↑ {playerInName}
       </span>
       <span className="text-muted-foreground/40 mx-0.5">→</span>

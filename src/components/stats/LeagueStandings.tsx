@@ -5,7 +5,7 @@ import { Crown, TrendingUp, TrendingDown, Minus, Shield } from 'lucide-react';
 import { getTeamStandings } from '@/data/standingsData';
 
 const formColors: Record<string, string> = {
-  W: 'bg-emerald-500',
+  W: 'bg-blue-500',
   D: 'bg-amber-500',
   L: 'bg-red-500',
 };
@@ -23,7 +23,7 @@ export default function LeagueStandings() {
     <div className="glass-card p-4 sm:p-5 overflow-hidden">
       {/* Header */}
       <div className="flex items-center gap-2 mb-4">
-        <Shield className="w-4 h-4 text-emerald-400" />
+        <Shield className="w-4 h-4 text-blue-400" />
         <h3 className="text-base font-semibold text-white">Tabla de Posiciones</h3>
         <span className="text-[10px] text-white/30 uppercase tracking-wider font-semibold ml-auto">
           Jornada 20
@@ -66,7 +66,7 @@ export default function LeagueStandings() {
                     border-b border-white/[0.03] cursor-pointer
                     transition-colors duration-200
                     hover:bg-white/[0.04]
-                    ${isTop4 && !isBottom ? 'bg-emerald-500/[0.03]' : ''}
+                    ${isTop4 && !isBottom ? 'bg-blue-500/[0.03]' : ''}
                     ${isBottom ? 'bg-red-500/[0.03]' : ''}
                   `}
                 >
@@ -80,7 +80,7 @@ export default function LeagueStandings() {
                       ) : (
                         <span className={`
                           inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold
-                          ${isTop4 ? 'bg-emerald-500/10 text-emerald-400' : 'text-white/50'}
+                          ${isTop4 ? 'bg-blue-500/10 text-blue-400' : 'text-white/50'}
                           ${isBottom ? 'bg-red-500/10 text-red-400' : ''}
                         `}>
                           {row.position}
@@ -104,7 +104,7 @@ export default function LeagueStandings() {
                       {/* Position change */}
                       <span className="shrink-0">
                         {row.positionChange > 0 ? (
-                          <TrendingUp className="w-3 h-3 text-emerald-400" />
+                          <TrendingUp className="w-3 h-3 text-blue-400" />
                         ) : row.positionChange < 0 ? (
                           <TrendingDown className="w-3 h-3 text-red-400" />
                         ) : (
@@ -124,7 +124,7 @@ export default function LeagueStandings() {
 
                   {/* Goal Difference */}
                   <td className="py-3 text-center text-sm tabular-nums font-bold">
-                    <span className={gd > 0 ? 'text-emerald-400' : gd < 0 ? 'text-red-400' : 'text-white/50'}>
+                    <span className={gd > 0 ? 'text-blue-400' : gd < 0 ? 'text-red-400' : 'text-white/50'}>
                       {gd > 0 ? `+${gd}` : gd}
                     </span>
                   </td>
@@ -136,7 +136,7 @@ export default function LeagueStandings() {
                       ${row.position === 1
                         ? 'bg-amber-500/15 text-amber-400'
                         : isTop4
-                          ? 'bg-emerald-500/10 text-emerald-400'
+                          ? 'bg-blue-500/10 text-blue-400'
                           : 'bg-white/5 text-white/70'
                       }
                     `}>
@@ -165,7 +165,7 @@ export default function LeagueStandings() {
       {/* Legend */}
       <div className="flex items-center gap-4 mt-4 pt-3 border-t border-white/[0.05]">
         <div className="flex items-center gap-1.5">
-          <div className="w-2 h-2 rounded-sm bg-emerald-500/30 border border-emerald-500/40" />
+          <div className="w-2 h-2 rounded-sm bg-blue-500/30 border border-blue-500/40" />
           <span className="text-[9px] text-white/30 font-medium">Champions League</span>
         </div>
         <div className="flex items-center gap-1.5">

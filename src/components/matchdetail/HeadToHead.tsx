@@ -74,7 +74,7 @@ function getResultLabel(r: H2HEntry, homeName: string, awayName: string): string
 
 // ---------- color helpers ----------
 const resultColors: Record<'V' | 'E' | 'D', { bg: string; text: string; border: string; label: string }> = {
-  V: { bg: 'bg-emerald-500/20', text: 'text-emerald-400', border: 'border-emerald-500/30', label: 'V' },
+  V: { bg: 'bg-blue-500/20', text: 'text-blue-400', border: 'border-blue-500/30', label: 'V' },
   E: { bg: 'bg-amber-500/20', text: 'text-amber-400', border: 'border-amber-500/30', label: 'E' },
   D: { bg: 'bg-red-500/20', text: 'text-red-400', border: 'border-red-500/30', label: 'D' },
 };
@@ -98,7 +98,7 @@ export default function HeadToHead({ match }: HeadToHeadProps) {
     >
       {/* Título */}
       <div className="mb-5 flex items-center gap-2">
-        <Swords className="h-4 w-4 text-emerald-400" />
+        <Swords className="h-4 w-4 text-blue-400" />
         <h3 className="text-base font-semibold text-white sm:text-lg">
           Enfrentamientos Directos
         </h3>
@@ -106,13 +106,13 @@ export default function HeadToHead({ match }: HeadToHeadProps) {
 
       {/* Nombres de equipos */}
       <div className="mb-4 grid grid-cols-[1fr_auto_1fr] items-center gap-3 px-1">
-        <span className="text-xs font-bold text-emerald-400 text-right truncate tracking-wide uppercase">
+        <span className="text-xs font-bold text-blue-400 text-right truncate tracking-wide uppercase">
           {homeName}
         </span>
         <span className="text-[10px] text-white/25 uppercase tracking-[0.15em] font-semibold">
           vs
         </span>
-        <span className="text-xs font-bold text-cyan-400 truncate tracking-wide uppercase">
+        <span className="text-xs font-bold text-blue-400 truncate tracking-wide uppercase">
           {awayName}
         </span>
       </div>
@@ -161,10 +161,10 @@ export default function HeadToHead({ match }: HeadToHeadProps) {
           <span className="text-[10px] text-white/30 uppercase tracking-wider font-semibold">
             Fecha
           </span>
-          <span className="text-[10px] text-emerald-400/60 uppercase tracking-wider font-semibold text-right">
+          <span className="text-[10px] text-blue-400/60 uppercase tracking-wider font-semibold text-right">
             {homeName}
           </span>
-          <span className="text-[10px] text-cyan-400/60 uppercase tracking-wider font-semibold">
+          <span className="text-[10px] text-blue-400/60 uppercase tracking-wider font-semibold">
             {awayName}
           </span>
           <span className="text-[10px] text-white/30 uppercase tracking-wider font-semibold text-right">

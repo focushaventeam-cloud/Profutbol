@@ -89,8 +89,8 @@ export default function StatsView() {
     >
       {/* Title */}
       <div className="flex items-center gap-3">
-        <BarChart3 className="w-6 h-6 text-emerald-400" />
-        <h1 className="text-2xl sm:text-3xl font-bold text-gradient">
+        <BarChart3 className="w-6 h-6 text-blue-400" />
+        <h1 className="text-2xl sm:text-3xl font-bold text-white">
           Estadísticas Globales
         </h1>
       </div>
@@ -106,7 +106,7 @@ export default function StatsView() {
           <StatCard
             label="Partidos"
             value={totalMatches}
-            icon={<Calendar className="w-5 h-5 text-cyan-400" />}
+            icon={<Calendar className="w-5 h-5 text-blue-400" />}
             accent="cyan"
           />
         </motion.div>
@@ -130,7 +130,7 @@ export default function StatsView() {
           <StatCard
             label="Goles Totales"
             value={totalGoals}
-            icon={<Target className="w-5 h-5 text-emerald-400" />}
+            icon={<Target className="w-5 h-5 text-blue-400" />}
             accent="emerald"
           />
         </motion.div>
@@ -181,10 +181,10 @@ export default function StatsView() {
                   <p className="text-sm text-white/50">{getTeam(mvp.teamId)?.name ?? ''} · {mvp.position}</p>
                   <div className="flex items-center gap-3 mt-2">
                     <span className="text-xs text-white/40 flex items-center gap-1">
-                      <Target className="w-3 h-3 text-emerald-400" /> {mvp.goals} goles
+                      <Target className="w-3 h-3 text-blue-400" /> {mvp.goals} goles
                     </span>
                     <span className="text-xs text-white/40 flex items-center gap-1">
-                      <Activity className="w-3 h-3 text-cyan-400" /> {mvp.assists} asist.
+                      <Activity className="w-3 h-3 text-blue-400" /> {mvp.assists} asist.
                     </span>
                   </div>
                 </div>
@@ -200,7 +200,7 @@ export default function StatsView() {
           transition={{ duration: 0.5, delay: 0.25 }}
         >
           <h2 className="text-lg font-semibold text-white/90 mb-3 flex items-center gap-2">
-            <Shield className="w-5 h-5 text-cyan-400" />
+            <Shield className="w-5 h-5 text-blue-400" />
             Mejores Asistencias
           </h2>
           <div className="glass-card p-4 space-y-3">
@@ -209,12 +209,12 @@ export default function StatsView() {
             ) : (
               topAssists.map((player, i) => (
                 <div key={player.id} className="flex items-center gap-3">
-                  <span className="w-6 h-6 rounded-full bg-cyan-500/10 flex items-center justify-center text-[10px] font-bold text-cyan-400">
+                  <span className="w-6 h-6 rounded-full bg-blue-500/10 flex items-center justify-center text-[10px] font-bold text-blue-400">
                     {i + 1}
                   </span>
                   <span className="text-sm text-white/80 flex-1 truncate font-medium">{player.name}</span>
                   <span className="text-xs text-white/40">{getTeam(player.teamId)?.shortName}</span>
-                  <span className="text-sm font-bold text-cyan-400 tabular-nums w-5 text-right">{player.assists}</span>
+                  <span className="text-sm font-bold text-blue-400 tabular-nums w-5 text-right">{player.assists}</span>
                 </div>
               ))
             )}
@@ -306,12 +306,12 @@ export default function StatsView() {
                     </span>
 
                     {/* Goals */}
-                    <span className="text-sm font-bold text-emerald-400 text-center tabular-nums">
+                    <span className="text-sm font-bold text-blue-400 text-center tabular-nums">
                       {player.goals}
                     </span>
 
                     {/* Assists */}
-                    <span className="text-sm font-medium text-cyan-400 text-center tabular-nums">
+                    <span className="text-sm font-medium text-blue-400 text-center tabular-nums">
                       {player.assists}
                     </span>
 
@@ -334,7 +334,7 @@ export default function StatsView() {
         transition={{ duration: 0.4, delay: 0.3 }}
       >
         <h2 className="text-lg font-semibold text-white/90 mb-3 flex items-center gap-2">
-          <Trophy className="w-5 h-5 text-emerald-400" />
+          <Trophy className="w-5 h-5 text-blue-400" />
           Últimos Resultados
         </h2>
 
@@ -351,7 +351,7 @@ export default function StatsView() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.3 + i * 0.06 }}
-                className="glass-card p-4 flex items-center justify-between gap-3 cursor-pointer hover:border-emerald-500/30 transition-all"
+                className="glass-card p-4 flex items-center justify-between gap-3 cursor-pointer hover:border-blue-500/30 transition-all"
                 onClick={() =>
                   useMatchStore.getState().selectMatch(match.id)
                 }
@@ -424,9 +424,9 @@ function StatCard({
   accent?: string;
 }) {
   const accentMap: Record<string, string> = {
-    emerald: 'from-emerald-500/10 to-emerald-500/[0.02] border-emerald-500/10 hover:border-emerald-500/20',
+    emerald: 'from-blue-500/10 to-blue-500/[0.02] border-blue-500/10 hover:border-blue-500/20',
     red: 'from-red-500/10 to-red-500/[0.02] border-red-500/10 hover:border-red-500/20',
-    cyan: 'from-cyan-500/10 to-cyan-500/[0.02] border-cyan-500/10 hover:border-cyan-500/20',
+    cyan: 'from-blue-500/10 to-blue-500/[0.02] border-blue-500/10 hover:border-blue-500/20',
     amber: 'from-amber-500/10 to-amber-500/[0.02] border-amber-500/10 hover:border-amber-500/20',
     slate: 'from-slate-500/10 to-slate-500/[0.02] border-slate-500/10 hover:border-slate-500/20',
     yellow: 'from-yellow-500/10 to-yellow-500/[0.02] border-yellow-500/10 hover:border-yellow-500/20',

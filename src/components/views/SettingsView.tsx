@@ -97,7 +97,7 @@ export default function SettingsView() {
           description: 'Efectos de movimiento y transiciones',
           value: settings.animations,
           onToggle: () => updateSetting('animations'),
-          icon: <Sparkles className="w-4 h-4 text-emerald-400" />,
+          icon: <Sparkles className="w-4 h-4 text-blue-400" />,
         },
       ],
     },
@@ -116,7 +116,7 @@ export default function SettingsView() {
           description: 'Efectos de sonido para eventos del partido',
           value: settings.sounds,
           onToggle: () => updateSetting('sounds'),
-          icon: <Volume2 className="w-4 h-4 text-cyan-400" />,
+          icon: <Volume2 className="w-4 h-4 text-blue-400" />,
         },
       ],
     },
@@ -129,8 +129,8 @@ export default function SettingsView() {
     >
       {/* Title */}
       <div className="flex items-center gap-3">
-        <Settings className="w-6 h-6 text-emerald-400" />
-        <h1 className="text-2xl sm:text-3xl font-bold text-gradient">Ajustes</h1>
+        <Settings className="w-6 h-6 text-blue-400" />
+        <h1 className="text-2xl sm:text-3xl font-bold text-white">Ajustes</h1>
       </div>
 
       {/* Settings Groups */}
@@ -169,7 +169,7 @@ export default function SettingsView() {
                   id={setting.label}
                   checked={setting.value}
                   onCheckedChange={setting.onToggle}
-                  className="data-[state=checked]:bg-emerald-600"
+                  className="data-[state=checked]:bg-blue-600"
                 />
               </div>
             ))}
@@ -190,12 +190,12 @@ export default function SettingsView() {
         <div className="glass-card p-1">
           <div className="grid grid-cols-3 gap-0.5">
             <PlatformCard
-              icon={<Monitor className="w-4 h-4 text-emerald-400" />}
+              icon={<Monitor className="w-4 h-4 text-blue-400" />}
               label="Escritorio"
               status="Optimizado"
             />
             <PlatformCard
-              icon={<Smartphone className="w-4 h-4 text-cyan-400" />}
+              icon={<Smartphone className="w-4 h-4 text-blue-400" />}
               label="Móvil"
               status="Responsive"
             />
@@ -224,7 +224,7 @@ export default function SettingsView() {
               <Github className="w-4 h-4 text-white/40" />
               <span className="text-sm text-white/60">GitHub Pages</span>
             </div>
-            <Badge variant="outline" className="border-emerald-500/20 bg-emerald-500/10 text-emerald-400 text-[10px]">
+            <Badge variant="outline" className="border-blue-500/20 bg-blue-500/10 text-blue-400 text-[10px]">
               Configurado
             </Badge>
           </div>
@@ -234,7 +234,7 @@ export default function SettingsView() {
               <Cloud className="w-4 h-4 text-white/40" />
               <span className="text-sm text-white/60">Cloudflare Workers</span>
             </div>
-            <Badge variant="outline" className="border-cyan-500/20 bg-cyan-500/10 text-cyan-400 text-[10px]">
+            <Badge variant="outline" className="border-blue-500/20 bg-blue-500/10 text-blue-400 text-[10px]">
               Preparado
             </Badge>
           </div>
@@ -244,7 +244,7 @@ export default function SettingsView() {
               <Database className="w-4 h-4 text-white/40" />
               <span className="text-sm text-white/60">Base de Datos</span>
             </div>
-            <Badge variant="outline" className="border-purple-500/20 bg-purple-500/10 text-purple-400 text-[10px]">
+            <Badge variant="outline" className="border-blue-500/20 bg-blue-500/10 text-blue-400 text-[10px]">
               SQLite / D1
             </Badge>
           </div>
@@ -262,7 +262,7 @@ export default function SettingsView() {
         </h2>
 
         <div className="glass-card p-6 space-y-4 relative overflow-hidden">
-          <div className="absolute -top-10 -right-10 h-24 w-24 rounded-full bg-emerald-500/[0.04] blur-[40px] pointer-events-none" />
+          <div className="absolute -top-10 -right-10 h-24 w-24 rounded-full bg-blue-500/[0.04] blur-[40px] pointer-events-none" />
           <p className="text-sm text-white/60 leading-relaxed">
             Profutbol es tu marcador de fútbol en tiempo real. Sigue todos los
             partidos de La Liga EA Sports con estadísticas detalladas,
@@ -301,7 +301,7 @@ export default function SettingsView() {
             <span className="text-xs text-white/40 uppercase tracking-wider font-medium">
               Desarrollado con
             </span>
-            <span className="text-sm font-semibold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
+            <span className="text-sm font-semibold text-blue-400">
               Z.ai
             </span>
           </div>
@@ -316,7 +316,7 @@ function PlatformCard({ icon, label, status }: { icon: React.ReactNode; label: s
     <div className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-white/[0.02] transition-colors">
       {icon}
       <span className="text-xs font-medium text-white/60">{label}</span>
-      <span className="text-[10px] text-emerald-400/70 font-medium">{status}</span>
+      <span className="text-[10px] text-blue-400/70 font-medium">{status}</span>
     </div>
   );
 }

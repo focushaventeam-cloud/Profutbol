@@ -50,7 +50,7 @@ export default function LiveScoreboard({ match }: { match: Match }) {
         <ShareMatchButton match={match} />
       </div>
       {/* Ambient inner glow */}
-      <div className="absolute -top-20 left-1/2 -translate-x-1/2 h-40 w-80 rounded-full bg-emerald-500/[0.04] blur-[80px] pointer-events-none" />
+      <div className="absolute -top-20 left-1/2 -translate-x-1/2 h-40 w-80 rounded-full bg-blue-500/[0.04] blur-[80px] pointer-events-none" />
       {/* League */}
       <div className="flex items-center justify-center gap-2 text-white/40 text-xs">
         <Trophy className="w-3.5 h-3.5" />
@@ -69,7 +69,7 @@ export default function LiveScoreboard({ match }: { match: Match }) {
           </div>
           <span
             className="font-bold text-sm sm:text-base truncate max-w-[140px]"
-            style={{ color: homeLeading ? '#34d399' : undefined }}
+            style={{ color: homeLeading ? '#60a5fa' : undefined }}
           >
             {match.homeTeam.name}
           </span>
@@ -86,7 +86,7 @@ export default function LiveScoreboard({ match }: { match: Match }) {
                 exit={{ scale: 0.8, y: 10, opacity: 0 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                 className={`text-6xl sm:text-7xl md:text-8xl font-black tabular-nums ${
-                  homeLeading ? 'text-emerald-400' : 'text-white'
+                  homeLeading ? 'text-blue-400' : 'text-white'
                 }`}
               >
                 {match.homeScore}
@@ -103,7 +103,7 @@ export default function LiveScoreboard({ match }: { match: Match }) {
                 exit={{ scale: 0.8, y: 10, opacity: 0 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                 className={`text-6xl sm:text-7xl md:text-8xl font-black tabular-nums ${
-                  awayLeading ? 'text-emerald-400' : 'text-white'
+                  awayLeading ? 'text-blue-400' : 'text-white'
                 }`}
               >
                 {match.awayScore}
@@ -130,7 +130,7 @@ export default function LiveScoreboard({ match }: { match: Match }) {
           </div>
           <span
             className="font-bold text-sm sm:text-base truncate max-w-[140px]"
-            style={{ color: awayLeading ? '#34d399' : undefined }}
+            style={{ color: awayLeading ? '#60a5fa' : undefined }}
           >
             {match.awayTeam.name}
           </span>
