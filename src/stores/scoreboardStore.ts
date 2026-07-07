@@ -7,16 +7,15 @@ import {
   TeamSide,
   SkinData,
   AdData,
-  ViewMode,
   createDefaultMatch,
   DEFAULT_SKIN,
 } from '@/types';
+import { broadcastState, onDisplayJoined, broadcastDisplayJoined } from '@/lib/broadcast-sync';
 
 interface ScoreboardStore {
-  // View
-  viewMode: ViewMode;
-  setViewMode: (mode: ViewMode) => void;
-  toggleView: () => void;
+  // Mode
+  mode: 'control' | 'display';
+  setMode: (mode: 'control' | 'display') => void;
 
   // Match
   match: MatchState;
@@ -77,245 +76,282 @@ interface ScoreboardStore {
   cycleAd: () => void;
   setActiveAd: (index: number) => void;
 
-  // Goals from events
+  // Sync
   syncScoreFromEvents: () => void;
+  applySyncState: (state: Record<string, unknown>) => void;
 }
+
+function createBroadcastingStore() {
+  let broadcastQueued = false;
+
+  const queueBroadcast = () => {
+    if (!broadcastQueued) {
+      broadcastQueued = true;
+      requestAnimationFrame(() => {
+        broadcastQueued = false;
+        const state = useScoreboardStore.getState();
+        broadcastState({
+          match: state.match,
+          isTimerRunning: state.isTimerRunning,
+          skins: state.skins,
+          activeSkinId: state.activeSkinId,
+          sponsorSkinId: state.sponsorSkinId,
+          ads: state.ads,
+          activeAdIndex: state.activeAdIndex,
+        });
+      });
+    }
+  };
+
+  return { queueBroadcast };
+}
+
+const { queueBroadcast } = createBroadcastingStore();
 
 export const useScoreboardStore = create<ScoreboardStore>((set, get) => {
   const defaultMatch = createDefaultMatch();
 
   return {
-    // View
-    viewMode: 'control' as ViewMode,
-    setViewMode: (mode) => set({ viewMode: mode }),
-    toggleView: () => set((s) => ({ viewMode: s.viewMode === 'control' ? 'display' : 'control' })),
+    mode: 'control',
+    setMode: (mode) => { set({ mode }); queueBroadcast(); },
 
-    // Match
     match: defaultMatch,
-    setMatch: (data) => set((s) => ({ match: { ...s.match, ...data } })),
-    resetMatch: () => set({ match: createDefaultMatch(), isTimerRunning: false }),
+    setMatch: (data) => {
+      set({ match: { ...get().match, ...data } });
+      queueBroadcast();
+    },
+    resetMatch: () => {
+      set({ match: createDefaultMatch(), isTimerRunning: false });
+      queueBroadcast();
+    },
 
-    // Timer
     isTimerRunning: false,
     startTimer: () => {
       const { match } = get();
       if (match.status === 'scheduled') {
-        set((s) => ({
-          isTimerRunning: true,
-          match: { ...s.match, status: 'live', period: 'first_half' },
-        }));
+        set({ isTimerRunning: true, match: { ...match, status: 'live', period: 'first_half' } });
       } else {
         set({ isTimerRunning: true });
       }
+      queueBroadcast();
     },
-    pauseTimer: () => set({ isTimerRunning: false }),
-    resetTimer: () => set((s) => ({ isTimerRunning: false, match: { ...s.match, currentTime: 0 } })),
-    setTimerSeconds: (seconds) =>
-      set((s) => ({ match: { ...s.match, currentTime: seconds } })),
+    pauseTimer: () => { set({ isTimerRunning: false }); queueBroadcast(); },
+    resetTimer: () => {
+      set({ isTimerRunning: false, match: { ...get().match, currentTime: 0 } });
+      queueBroadcast();
+    },
+    setTimerSeconds: (seconds) => {
+      set({ match: { ...get().match, currentTime: seconds } });
+      queueBroadcast();
+    },
     tickTimer: () => {
       const { match } = get();
-      const periodSeconds =
-        match.period === 'first_half' || match.period === 'extra_time_first'
-          ? 45 * 60
-          : match.period === 'second_half' || match.period === 'extra_time_second'
-          ? 90 * 60
-          : 120 * 60;
-
-      const newTime = match.currentTime + 1;
-      set((s) => ({
-        match: { ...s.match, currentTime: newTime },
-      }));
+      set({ match: { ...match, currentTime: match.currentTime + 1 } });
+      queueBroadcast();
     },
 
-    // Score
-    updateScore: (team, delta) =>
-      set((s) => ({
+    updateScore: (team, delta) => {
+      const { match } = get();
+      set({
         match: {
-          ...s.match,
-          homeScore: team === 'home' ? Math.max(0, s.match.homeScore + delta) : s.match.homeScore,
-          awayScore: team === 'away' ? Math.max(0, s.match.awayScore + delta) : s.match.awayScore,
+          ...match,
+          homeScore: team === 'home' ? Math.max(0, match.homeScore + delta) : match.homeScore,
+          awayScore: team === 'away' ? Math.max(0, match.awayScore + delta) : match.awayScore,
         },
-      })),
-    setScore: (team, value) =>
-      set((s) => ({
+      });
+      queueBroadcast();
+    },
+    setScore: (team, value) => {
+      const { match } = get();
+      set({
         match: {
-          ...s.match,
-          homeScore: team === 'home' ? Math.max(0, value) : s.match.homeScore,
-          awayScore: team === 'away' ? Math.max(0, value) : s.match.awayScore,
+          ...match,
+          homeScore: team === 'home' ? Math.max(0, value) : match.homeScore,
+          awayScore: team === 'away' ? Math.max(0, value) : match.awayScore,
         },
-      })),
+      });
+      queueBroadcast();
+    },
 
-    // Status & Period
     setStatus: (status) => {
-      set((s) => ({
-        match: { ...s.match, status },
-        isTimerRunning: status === 'live',
-      }));
+      set({ match: { ...get().match, status }, isTimerRunning: status === 'live' });
+      queueBroadcast();
     },
     setPeriod: (period) => {
-      set((s) => ({
-        match: {
-          ...s.match,
-          period,
-          currentTime:
-            period === 'second_half'
-              ? 45 * 60
-              : period === 'extra_time_first'
-              ? 90 * 60
-              : period === 'extra_time_second'
-              ? 105 * 60
-              : 0,
-        },
-      }));
+      const timeMap: Partial<Record<MatchPeriod, number>> = {
+        second_half: 45 * 60,
+        extra_time_first: 90 * 60,
+        extra_time_second: 105 * 60,
+      };
+      set({ match: { ...get().match, period, currentTime: timeMap[period] ?? 0 } });
+      queueBroadcast();
     },
-    setAddedTime: (time) =>
-      set((s) => ({ match: { ...s.match, addedTime: time } })),
-    setExtraTimeAdded: (time) =>
-      set((s) => ({ match: { ...s.match, extraTimeAdded: time } })),
+    setAddedTime: (time) => { set({ match: { ...get().match, addedTime: time } }); queueBroadcast(); },
+    setExtraTimeAdded: (time) => { set({ match: { ...get().match, extraTimeAdded: time } }); queueBroadcast(); },
 
-    // Teams
-    setTeamName: (side, name, shortName) =>
-      set((s) => ({
-        match: {
-          ...s.match,
-          [side === 'home' ? 'homeTeam' : 'awayTeam']: {
-            ...s.match[side === 'home' ? 'homeTeam' : 'awayTeam'],
-            name,
-            shortName,
-          },
-        },
-      })),
-    setTeamColor: (side, primary, secondary) =>
-      set((s) => ({
-        match: {
-          ...s.match,
-          [side === 'home' ? 'homeTeam' : 'awayTeam']: {
-            ...s.match[side === 'home' ? 'homeTeam' : 'awayTeam'],
-            primaryColor: primary,
-            secondaryColor: secondary,
-          },
-        },
-      })),
-    setTeamLogo: (side, logo) =>
-      set((s) => ({
-        match: {
-          ...s.match,
-          [side === 'home' ? 'homeTeam' : 'awayTeam']: {
-            ...s.match[side === 'home' ? 'homeTeam' : 'awayTeam'],
-            logo,
-          },
-        },
-      })),
-    setVenue: (venue) => set((s) => ({ match: { ...s.match, venue } })),
-    setCompetition: (competition) => set((s) => ({ match: { ...s.match, competition } })),
+    setTeamName: (side, name, shortName) => {
+      const key = side === 'home' ? 'homeTeam' : 'awayTeam';
+      const team = get().match[key];
+      set({ match: { ...get().match, [key]: { ...team, name, shortName } } });
+      queueBroadcast();
+    },
+    setTeamColor: (side, primary, secondary) => {
+      const key = side === 'home' ? 'homeTeam' : 'awayTeam';
+      const team = get().match[key];
+      set({ match: { ...get().match, [key]: { ...team, primaryColor: primary, secondaryColor: secondary } } });
+      queueBroadcast();
+    },
+    setTeamLogo: (side, logo) => {
+      const key = side === 'home' ? 'homeTeam' : 'awayTeam';
+      const team = get().match[key];
+      set({ match: { ...get().match, [key]: { ...team, logo } } });
+      queueBroadcast();
+    },
+    setVenue: (venue) => { set({ match: { ...get().match, venue } }); queueBroadcast(); },
+    setCompetition: (competition) => { set({ match: { ...get().match, competition } }); queueBroadcast(); },
 
-    // Events
-    addEvent: (event) =>
-      set((s) => ({
-        match: {
-          ...s.match,
-          events: [event, ...s.match.events].sort((a, b) => b.minute - a.minute),
-        },
-      })),
-    removeEvent: (eventId) =>
-      set((s) => ({
-        match: {
-          ...s.match,
-          events: s.match.events.filter((e) => e.id !== eventId),
-        },
-      })),
-    clearEvents: () =>
-      set((s) => ({ match: { ...s.match, events: [] } })),
+    addEvent: (event) => {
+      const { match } = get();
+      set({ match: { ...match, events: [event, ...match.events].sort((a, b) => b.minute - a.minute) } });
+      queueBroadcast();
+    },
+    removeEvent: (eventId) => {
+      const { match } = get();
+      set({ match: { ...match, events: match.events.filter((e) => e.id !== eventId) } });
+      queueBroadcast();
+    },
+    clearEvents: () => {
+      set({ match: { ...get().match, events: [] } });
+      queueBroadcast();
+    },
 
-    // Players
-    addPlayer: (side, player) =>
-      set((s) => {
-        const team = s.match[side === 'home' ? 'homeTeam' : 'awayTeam'];
-        return {
-          match: {
-            ...s.match,
-            [side === 'home' ? 'homeTeam' : 'awayTeam']: {
-              ...team,
-              players: [...team.players, player],
-            },
-          },
-        };
-      }),
-    removePlayer: (side, playerId) =>
-      set((s) => {
-        const team = s.match[side === 'home' ? 'homeTeam' : 'awayTeam'];
-        return {
-          match: {
-            ...s.match,
-            [side === 'home' ? 'homeTeam' : 'awayTeam']: {
-              ...team,
-              players: team.players.filter((p) => p.id !== playerId),
-            },
-          },
-        };
-      }),
+    addPlayer: (side, player) => {
+      const { match } = get();
+      const key = side === 'home' ? 'homeTeam' : 'awayTeam';
+      const team = match[key];
+      set({ match: { ...match, [key]: { ...team, players: [...team.players, player] } } });
+      queueBroadcast();
+    },
+    removePlayer: (side, playerId) => {
+      const { match } = get();
+      const key = side === 'home' ? 'homeTeam' : 'awayTeam';
+      const team = match[key];
+      set({ match: { ...match, [key]: { ...team, players: team.players.filter((p) => p.id !== playerId) } } });
+      queueBroadcast();
+    },
 
-    // Skins
     skins: [DEFAULT_SKIN],
     activeSkinId: 'default',
     sponsorSkinId: null,
     getActiveSkin: () => {
       const { skins, activeSkinId, sponsorSkinId } = get();
       if (sponsorSkinId) {
-        const sponsor = skins.find((s) => s.id === sponsorSkinId);
-        if (sponsor) return sponsor;
+        const found = skins.find((s) => s.id === sponsorSkinId);
+        if (found) return found;
       }
       return skins.find((s) => s.id === activeSkinId) || DEFAULT_SKIN;
     },
-    addSkin: (skin) =>
-      set((s) => ({ skins: [...s.skins, skin] })),
-    removeSkin: (skinId) =>
-      set((s) => ({
-        skins: s.skins.filter((sk) => sk.id !== skinId),
-        activeSkinId: s.activeSkinId === skinId ? 'default' : s.activeSkinId,
-      })),
-    setActiveSkin: (skinId) => set({ activeSkinId: skinId }),
-    setSponsorSkin: (skinId) => set({ sponsorSkinId: skinId }),
-    updateSkin: (skinId, data) =>
-      set((s) => ({
-        skins: s.skins.map((sk) => (sk.id === skinId ? { ...sk, ...data } : sk)),
-      })),
+    addSkin: (skin) => { set({ skins: [...get().skins, skin] }); queueBroadcast(); },
+    removeSkin: (skinId) => {
+      set({
+        skins: get().skins.filter((sk) => sk.id !== skinId),
+        activeSkinId: get().activeSkinId === skinId ? 'default' : get().activeSkinId,
+      });
+      queueBroadcast();
+    },
+    setActiveSkin: (skinId) => { set({ activeSkinId: skinId }); queueBroadcast(); },
+    setSponsorSkin: (skinId) => { set({ sponsorSkinId: skinId }); queueBroadcast(); },
+    updateSkin: (skinId, data) => {
+      set({ skins: get().skins.map((sk) => (sk.id === skinId ? { ...sk, ...data } : sk)) });
+      queueBroadcast();
+    },
 
-    // Ads
     ads: [],
     activeAdIndex: 0,
-    addAd: (ad) => set((s) => ({ ads: [...s.ads, ad] })),
-    removeAd: (adId) =>
-      set((s) => ({
-        ads: s.ads.filter((a) => a.id !== adId),
-        activeAdIndex: Math.min(s.activeAdIndex, Math.max(0, s.ads.length - 2)),
-      })),
-    updateAd: (adId, data) =>
-      set((s) => ({
-        ads: s.ads.map((a) => (a.id === adId ? { ...a, ...data } : a)),
-      })),
-    cycleAd: () =>
-      set((s) => ({
-        activeAdIndex: s.ads.length > 0 ? (s.activeAdIndex + 1) % s.ads.length : 0,
-      })),
-    setActiveAd: (index) => set({ activeAdIndex: index }),
+    addAd: (ad) => { set({ ads: [...get().ads, ad] }); queueBroadcast(); },
+    removeAd: (adId) => {
+      const { ads, activeAdIndex } = get();
+      set({
+        ads: ads.filter((a) => a.id !== adId),
+        activeAdIndex: Math.min(activeAdIndex, Math.max(0, ads.length - 2)),
+      });
+      queueBroadcast();
+    },
+    updateAd: (adId, data) => {
+      set({ ads: get().ads.map((a) => (a.id === adId ? { ...a, ...data } : a)) });
+      queueBroadcast();
+    },
+    cycleAd: () => {
+      const { ads, activeAdIndex } = get();
+      set({ activeAdIndex: ads.length > 0 ? (activeAdIndex + 1) % ads.length : 0 });
+      queueBroadcast();
+    },
+    setActiveAd: (index) => { set({ activeAdIndex: index }); queueBroadcast(); },
 
-    // Sync
-    syncScoreFromEvents: () =>
-      set((s) => {
-        const homeGoals = s.match.events.filter(
-          (e) => (e.type === 'goal' || e.type === 'penalty_goal') && e.team === 'home'
-        ).length;
-        const awayGoals = s.match.events.filter(
-          (e) => (e.type === 'goal' || e.type === 'penalty_goal') && e.team === 'away'
-        ).length;
-        return {
-          match: {
-            ...s.match,
-            homeScore: homeGoals + s.match.events.filter((e) => e.type === 'own_goal' && e.team === 'away').length,
-            awayScore: awayGoals + s.match.events.filter((e) => e.type === 'own_goal' && e.team === 'home').length,
-          },
-        };
-      }),
+    syncScoreFromEvents: () => {
+      const { match } = get();
+      const homeGoals = match.events.filter(
+        (e) => (e.type === 'goal' || e.type === 'penalty_goal') && e.team === 'home'
+      ).length;
+      const awayGoals = match.events.filter(
+        (e) => (e.type === 'goal' || e.type === 'penalty_goal') && e.team === 'away'
+      ).length;
+      set({
+        match: {
+          ...match,
+          homeScore: homeGoals + match.events.filter((e) => e.type === 'own_goal' && e.team === 'away').length,
+          awayScore: awayGoals + match.events.filter((e) => e.type === 'own_goal' && e.team === 'home').length,
+        },
+      });
+      queueBroadcast();
+    },
+
+    applySyncState: (state) => {
+      set({
+        match: state.match as MatchState,
+        isTimerRunning: state.isTimerRunning as boolean,
+        skins: state.skins as SkinData[],
+        activeSkinId: state.activeSkinId as string,
+        sponsorSkinId: state.sponsorSkinId as string | null,
+        ads: state.ads as AdData[],
+        activeAdIndex: state.activeAdIndex as number,
+      });
+    },
   };
 });
+
+// =============================================================================
+// CONTROL PANEL: Auto-broadcast on display window join
+// =============================================================================
+let displayJoinedUnsub: (() => void) | null = null;
+
+export function enableControlBroadcasting() {
+  displayJoinedUnsub = onDisplayJoined(() => {
+    const s = useScoreboardStore.getState();
+    broadcastState({
+      match: s.match,
+      isTimerRunning: s.isTimerRunning,
+      skins: s.skins,
+      activeSkinId: s.activeSkinId,
+      sponsorSkinId: s.sponsorSkinId,
+      ads: s.ads,
+      activeAdIndex: s.activeAdIndex,
+    });
+  });
+}
+
+export function disableControlBroadcasting() {
+  if (displayJoinedUnsub) {
+    displayJoinedUnsub();
+    displayJoinedUnsub = null;
+  }
+}
+
+// =============================================================================
+// DISPLAY WINDOW: Listen for state updates from control panel
+// =============================================================================
+export function useDisplaySync() {
+  if (typeof window !== 'undefined') {
+    broadcastDisplayJoined();
+  }
+}

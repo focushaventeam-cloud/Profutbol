@@ -1,10 +1,13 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-import { useScoreboardStore } from '@/stores/scoreboardStore';
+import { useEffect, useRef, useState, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useScoreboardStore, enableControlBroadcasting, disableControlBroadcasting, useDisplaySync } from '@/stores/scoreboardStore';
+import { onStateUpdate, broadcastDisplayJoined } from '@/lib/broadcast-sync';
 import { StadiumDisplay } from '@/components/scoreboard/StadiumDisplay';
 import { ControlPanel } from '@/components/control/ControlPanel';
 
+// ── Timer hook: only runs in control mode ─────────────────────────────────────
 function useTimerTick() {
   const isTimerRunning = useScoreboardStore((s) => s.isTimerRunning);
   const tickTimer = useScoreboardStore((s) => s.tickTimer);
@@ -21,43 +24,101 @@ function useTimerTick() {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
     }
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
   }, [isTimerRunning, tickTimer]);
 
   useEffect(() => {
     if (!isTimerRunning) return;
     const mins = Math.floor(currentTime / 60);
-    const ends: Record<string, number> = { first_half: 45, second_half: 90, extra_time_first: 105, extra_time_second: 120 };
+    const ends: Record<string, number> = {
+      first_half: 45,
+      second_half: 90,
+      extra_time_first: 105,
+      extra_time_second: 120,
+    };
     const end = ends[matchPeriod];
-    if (end && mins >= end + (addedTime > 0 ? addedTime : 0)) {
-      setStatus(matchPeriod === 'second_half' || matchPeriod === 'extra_time_second' ? 'finished' : 'halftime');
-    } else if (end && mins >= end && addedTime === 0) {
-      setStatus(matchPeriod === 'second_half' ? 'finished' : 'halftime');
+    if (end) {
+      const totalEnd = end + (addedTime > 0 ? addedTime : 0);
+      if (mins >= totalEnd) {
+        setStatus(matchPeriod === 'second_half' || matchPeriod === 'extra_time_second' ? 'finished' : 'halftime');
+      }
     }
   }, [currentTime, matchPeriod, addedTime, isTimerRunning, setStatus]);
 }
 
-export default function Home() {
-  const viewMode = useScoreboardStore((s) => s.viewMode);
-  const setViewMode = useScoreboardStore((s) => s.setViewMode);
-  useTimerTick();
+// ── Display window: receives state via BroadcastChannel ───────────────────────
+function DisplayWindow() {
+  const applySyncRef = useRef(useScoreboardStore.getState().applySyncState);
+  const [connected, setConnected] = useState(false);
 
   useEffect(() => {
-    const h = (e: KeyboardEvent) => { if (e.key === 'Escape' && viewMode === 'display') setViewMode('control'); };
-    window.addEventListener('keydown', h);
-    return () => window.removeEventListener('keydown', h);
-  }, [viewMode, setViewMode]);
+    applySyncRef.current = useScoreboardStore.getState().applySyncState;
+  });
 
-  if (viewMode === 'display') {
-    return (
-      <div className="display-mode">
-        <StadiumDisplay />
-        <div className="fixed bottom-2 right-2 z-50 text-white/10 text-xs cursor-pointer hover:text-white/40 transition-colors" onClick={() => setViewMode('control')}>
-          ESC para salir
-        </div>
+  useEffect(() => {
+    const unsub = onStateUpdate((state) => {
+      applySyncRef.current(state);
+      setConnected(true);
+    });
+
+    useDisplaySync();
+
+    const syncInterval = setInterval(() => {
+      broadcastDisplayJoined();
+    }, 3000);
+
+    return () => {
+      unsub();
+      clearInterval(syncInterval);
+    };
+  }, []);
+
+  return (
+    <div className="display-mode">
+      <StadiumDisplay />
+      <div className="fixed top-3 right-3 z-50 flex items-center gap-2">
+        {connected && (
+          <div className="flex items-center gap-1.5 bg-green-500/20 border border-green-500/30 rounded-full px-3 py-1.5 backdrop-blur-sm">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-green-400" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+            </span>
+            <span className="text-[10px] text-green-300 font-medium tracking-wider">EN VIVO</span>
+          </div>
+        )}
+        {!connected && (
+          <div className="flex items-center gap-1.5 bg-yellow-500/20 border border-yellow-500/30 rounded-full px-3 py-1.5 backdrop-blur-sm">
+            <span className="text-[10px] text-yellow-300 font-medium tracking-wider">ESPERANDO CONEXIÓN...</span>
+          </div>
+        )}
+        <button
+          onClick={() => {
+            const el = document.documentElement;
+            if (!document.fullscreenElement) {
+              el.requestFullscreen().catch(() => {});
+            } else {
+              document.exitFullscreen();
+            }
+          }}
+          className="bg-white/10 hover:bg-white/20 border border-white/15 rounded-full px-3 py-1.5 text-[10px] text-white/50 hover:text-white transition-all backdrop-blur-sm"
+        >
+          ⛶ Pantalla Completa
+        </button>
       </div>
-    );
-  }
+    </div>
+  );
+}
+
+// ── Control window ────────────────────────────────────────────────────────────
+function ControlWindow() {
+  useEffect(() => {
+    enableControlBroadcasting();
+    return () => disableControlBroadcasting();
+  }, []);
+
+  useTimerTick();
 
   return (
     <div className="control-mode min-h-screen">
@@ -65,5 +126,32 @@ export default function Home() {
       <div className="stadium-bokeh" />
       <ControlPanel />
     </div>
+  );
+}
+
+// ── Router: reads ?mode=display from URL ───────────────────────────────────────
+function Router() {
+  const searchParams = useSearchParams();
+  const mode = searchParams.get('mode');
+
+  if (mode === 'display') {
+    return <DisplayWindow />;
+  }
+
+  return <ControlWindow />;
+}
+
+// ── Main Page (with Suspense for useSearchParams) ─────────────────────────────
+export default function Home() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#0a1628] flex items-center justify-center">
+          <div className="text-white/30 text-sm animate-pulse">Cargando PROFUTBOL...</div>
+        </div>
+      }
+    >
+      <Router />
+    </Suspense>
   );
 }
