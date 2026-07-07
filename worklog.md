@@ -241,3 +241,35 @@ Stage Summary:
 - Complete Liga FUTVE 2025 database file at `src/data/liga-futve.ts`
 - 14 teams with verified data (colors, stadiums, cities, titles, founding years)
 - Ready for import in any component
+---
+Task ID: 8
+Agent: Main Agent
+Task: Replace incorrect team logos with verified official escudos from reliable sources
+
+Work Log:
+- Analyzed the problem: previous logos at sfile.chatglm.cn were AI-generated screenshots/web clippings, NOT actual team badges
+- Researched professional scoreboard standards: real scoreboards use official team crests (transparent PNG/SVG)
+- Identified football-logos.cc as primary source (1500x1500 transparent PNG badges)
+- Used web-search + page_reader to extract direct asset URLs from football-logos.cc for 13 of 14 teams
+- Found Inter de Barinas (newly renamed from Hermanos Colmenárez) not on football-logos.cc, obtained from Wikimedia Commons
+- Found Rayo Zuliano blocked on football-logos.cc, obtained from Wikimedia Commons
+- Found Monagas blocked on football-logos.cc, obtained from seeklogo.com
+- Downloaded all 14 logos with proper HTTP headers (User-Agent + Referer for football-logos.cc)
+- Created directory `public/escudos/` with all 14 local PNG files
+- Verified each image with VLM (Vision Language Model):
+  - Deportivo Táchira: ✅ "shield shape, yellow and black, soccer ball, stars, DEPORTIVO TÁCHIRA FC"
+  - Caracas FC: ✅ "red shield with blue border, yellow lion, CARACAS FC"
+  - Inter de Barinas: ✅ "clean team badge on transparent background, blue/white stripes, INTER DE BARINAS"
+  - Rayo Zuliano: ✅ "shield with blue, white, yellow, RAYO ZULIANO, lightning bolts"
+- Updated `src/data/team-logos.ts` to use local paths `/escudos/team-name.png` instead of external URLs
+- Verified all 14 files serve correctly as PNG via dev server (Python urllib test: 14/14 OK)
+- Verified main page loads (HTTP 200, 26723 bytes)
+- Verified /marcador page loads
+- ESLint passes clean
+
+Stage Summary:
+- 14 official team escudos now stored as local assets in `public/escudos/`
+- Sources: football-logos.cc (11 teams, 1500x1500 PNG), Wikimedia Commons (2 teams), seeklogo.com (1 team)
+- All verified as actual team badges (not screenshots) via VLM analysis
+- `team-logos.ts` updated from external chatglm.cn URLs to local `/escudos/` paths
+- Files: tachira.png (93KB), caracas.png (140KB), monagas.png (74KB), zamora.png (191KB), la-guaira.png (115KB), puerto-cabello.png (88KB), metropolitanos.png (168KB), carabobo.png (83KB), estudiantes-merida.png (106KB), portuguesa.png (66KB), rayo-zuliano.png (257KB), yaracuyanos.png (142KB), inter-barinas.png (116KB), anzoategui.png (131KB)

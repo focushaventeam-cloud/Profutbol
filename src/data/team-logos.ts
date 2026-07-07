@@ -1,16 +1,19 @@
+// Escudos oficiales de la Liga FUTVE 2025
+// Fuente: football-logos.cc (1500x1500 PNG transparente) y Wikimedia Commons
+// Archivos locales en public/escudos/
 export const TEAM_LOGOS: Record<string, string> = {
-  tachira: "https://sfile.chatglm.cn/images-ppt/c03c6ac15423.jpg",
-  caracas: "https://sfile.chatglm.cn/images-ppt/7159d08a2b69.jpg",
-  monagas: "https://sfile.chatglm.cn/images-ppt/c81404ab443b.jpg",
-  zamora: "https://sfile.chatglm.cn/images-ppt/e1c59de74f16.jpg",
-  "la-guaira": "https://sfile.chatglm.cn/images-ppt/7db374f530d8.jpg",
-  "puerto-cabello": "https://sfile.chatglm.cn/images-ppt/0ecfdf4fe449.png",
-  metropolitanos: "https://sfile.chatglm.cn/images-ppt/cbb66711b99e.png",
-  carabobo: "https://sfile.chatglm.cn/images-ppt/f92d85472e20.jpg",
-  "estudiantes-merida": "https://sfile.chatglm.cn/images-ppt/92fe69f7e6a0.jpg",
-  portuguesa: "https://sfile.chatglm.cn/images-ppt/2f7afe365893.png",
-  "rayo-zuliano": "https://sfile.chatglm.cn/images-ppt/f5e01aadbe1e.jpg",
-  yaracuyanos: "https://sfile.chatglm.cn/images-ppt/6849a4f1d83d.svg",
-  "inter-barinas": "https://sfile.chatglm.cn/images-ppt/ed9876286581.jpg",
-  anzoategui: "https://sfile.chatglm.cn/images-ppt/43247be4e462.png",
+  tachira: "/escudos/tachira.png",
+  caracas: "/escudos/caracas.png",
+  monagas: "/escudos/monagas.png",
+  zamora: "/escudos/zamora.png",
+  "la-guaira": "/escudos/la-guaira.png",
+  "puerto-cabello": "/escudos/puerto-cabello.png",
+  metropolitanos: "/escudos/metropolitanos.png",
+  carabobo: "/escudos/carabobo.png",
+  "estudiantes-merida": "/escudos/estudiantes-merida.png",
+  portuguesa: "/escudos/portuguesa.png",
+  "rayo-zuliano": "/escudos/rayo-zuliano.png",
+  yaracuyanos: "/escudos/yaracuyanos.png",
+  "inter-barinas": "/escudos/inter-barinas.png",
+  anzoategui: "/escudos/anzoategui.png",
 };
