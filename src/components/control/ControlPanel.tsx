@@ -6,6 +6,8 @@ import {
   MatchStatus, MatchPeriod, EventType, TeamSide, SkinData,
   EVENT_ICONS, EVENT_LABELS, PERIOD_LABELS, STATUS_LABELS,
 } from '@/types';
+import { LigaTeamSelector } from './LigaTeamSelector';
+import { LineupControl } from './LineupControl';
 
 const genId = () => `id-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
@@ -84,6 +86,7 @@ function MatchSetup() {
   const [pName, setPName] = useState('');
   const [pNum, setPNum] = useState('');
   const [pSide, setPSide] = useState<TeamSide>('home');
+  const [ligaModal, setLigaModal] = useState<TeamSide | null>(null);
 
   const addP = () => {
     if (pName.trim() && pNum.trim()) {
@@ -95,6 +98,29 @@ function MatchSetup() {
 
   return (
     <div>
+      {/* Liga FUTVE Selector */}
+      <div className="glass-panel rounded-xl p-4 mb-3 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-green-400/20">
+        <button
+          type="button"
+          onClick={() => setLigaModal('home')}
+          className="w-full py-3 rounded-xl bg-green-500/15 hover:bg-green-500/25 border border-green-400/25 text-green-200 font-bold text-sm transition-all active:scale-[0.98] flex items-center justify-center gap-2 mb-2"
+        >
+          ⚽ Cargar Equipo Local de Liga FUTVE
+        </button>
+        <button
+          type="button"
+          onClick={() => setLigaModal('away')}
+          className="w-full py-3 rounded-xl bg-green-500/15 hover:bg-green-500/25 border border-green-400/25 text-green-200 font-bold text-sm transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+        >
+          ⚽ Cargar Equipo Visitante de Liga FUTVE
+        </button>
+        <p className="text-[10px] text-white/15 text-center mt-2">
+          Selecciona equipos de la Liga FUTVE 2025 para cargar nombre, colores, logo y estadio automáticamente
+        </p>
+      </div>
+
+      {ligaModal && <LigaTeamSelector side={ligaModal} onClose={() => setLigaModal(null)} />}
+
       <Section title="Competición">
         <Field label="Competición">
           <Inp value={match.competition} onChange={(v) => setCompetition(v)} placeholder="Nombre de la liga" />
@@ -805,6 +831,7 @@ export function ControlPanel() {
   const tabs = [
     { id: 'score', label: '⚽ Marcador', icon: '⚽' },
     { id: 'match', label: '📋 Partido', icon: '📋' },
+    { id: 'lineup', label: '🏟 Alineación', icon: '🏟' },
     { id: 'events', label: '🎯 Eventos', icon: '🎯' },
     { id: 'ads', label: '📢 Publicidad', icon: '📢' },
     { id: 'skins', label: '🎨 Skins', icon: '🎨' },
@@ -851,6 +878,7 @@ export function ControlPanel() {
         <div>
           {tab === 'match' && <MatchSetup />}
           {tab === 'score' && <ScoreControl />}
+          {tab === 'lineup' && <LineupControl />}
           {tab === 'events' && <EventsControl />}
           {tab === 'ads' && <AdsControl />}
           {tab === 'skins' && <SkinsControl />}

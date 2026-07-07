@@ -46,6 +46,11 @@ interface ScoreboardStore {
   setTeamLogo: (side: TeamSide, logo: string) => void;
   setVenue: (venue: string) => void;
   setCompetition: (competition: string) => void;
+  loadLigaTeam: (side: TeamSide, teamId: string, name: string, shortName: string, logo: string, primary: string, secondary: string, stadium: string) => void;
+  setCoach: (side: TeamSide, coach: string) => void;
+  setFormation: (side: TeamSide, formation: string) => void;
+  setLineup: (side: TeamSide, playerIds: string[]) => void;
+  updatePlayer: (side: TeamSide, playerId: string, data: Partial<import('@/types').Player>) => void;
 
   // Events
   addEvent: (event: MatchEvent) => void;
@@ -53,7 +58,7 @@ interface ScoreboardStore {
   clearEvents: () => void;
 
   // Players
-  addPlayer: (side: TeamSide, player: { id: string; name: string; number: number }) => void;
+  addPlayer: (side: TeamSide, player: { id: string; name: string; number: number; position?: string; role?: string; isCaptain?: boolean }) => void;
   removePlayer: (side: TeamSide, playerId: string) => void;
 
   // Skins
@@ -209,6 +214,47 @@ export const useScoreboardStore = create<ScoreboardStore>((set, get) => {
     },
     setVenue: (venue) => { set({ match: { ...get().match, venue } }); queueBroadcast(); },
     setCompetition: (competition) => { set({ match: { ...get().match, competition } }); queueBroadcast(); },
+    loadLigaTeam: (side, teamId, name, shortName, logo, primary, secondary, stadium) => {
+      const key = side === 'home' ? 'homeTeam' : 'awayTeam';
+      const team = get().match[key];
+      set({
+        match: {
+          ...get().match,
+          venue: stadium,
+          [key]: { ...team, id: teamId, name, shortName, logo, primaryColor: primary, secondaryColor: secondary, players: [], lineup: [], coach: '' },
+        },
+      });
+      queueBroadcast();
+    },
+    setCoach: (side, coach) => {
+      const key = side === 'home' ? 'homeTeam' : 'awayTeam';
+      const team = get().match[key];
+      set({ match: { ...get().match, [key]: { ...team, coach } } });
+      queueBroadcast();
+    },
+    setFormation: (side, formation) => {
+      const key = side === 'home' ? 'homeTeam' : 'awayTeam';
+      const team = get().match[key];
+      set({ match: { ...get().match, [key]: { ...team, formation: formation as any } } });
+      queueBroadcast();
+    },
+    setLineup: (side, playerIds) => {
+      const key = side === 'home' ? 'homeTeam' : 'awayTeam';
+      const team = get().match[key];
+      set({ match: { ...get().match, [key]: { ...team, lineup: playerIds } } });
+      queueBroadcast();
+    },
+    updatePlayer: (side, playerId, data) => {
+      const key = side === 'home' ? 'homeTeam' : 'awayTeam';
+      const team = get().match[key];
+      set({
+        match: {
+          ...get().match,
+          [key]: { ...team, players: team.players.map((p) => (p.id === playerId ? { ...p, ...data } : p)) },
+        },
+      });
+      queueBroadcast();
+    },
 
     addEvent: (event) => {
       const { match } = get();

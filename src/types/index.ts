@@ -16,12 +16,39 @@ export interface Team {
   primaryColor: string;
   secondaryColor: string;
   players: Player[];
+  lineup: string[];
+  formation: Formation;
+  coach: string;
 }
+
+export type PlayerPosition = 'POR' | 'DFC' | 'LI' | 'LD' | 'MCD' | 'MC' | 'MCO' | 'MI' | 'MD' | 'EI' | 'ED' | 'DC';
+export type PlayerRole = 'titular' | 'suplente' | 'cuerpo_tecnico';
+export type Formation = '4-4-2' | '4-3-3' | '4-2-3-1' | '3-5-2' | '3-4-3' | '5-3-2' | '4-5-1' | '4-1-4-1';
+
+export const FORMATIONS: string[] = ['4-4-2', '4-3-3', '4-2-3-1', '3-5-2', '3-4-3', '5-3-2', '4-5-1', '4-1-4-1'];
+
+export const POSITION_LABELS: Record<PlayerPosition, string> = {
+  POR: 'Portero',
+  DFC: 'Defensa Central',
+  LI: 'Lateral Izquierdo',
+  LD: 'Lateral Derecho',
+  MCD: 'Mediocentro Defensivo',
+  MC: 'Mediocentro',
+  MCO: 'Mediapunta',
+  MI: 'Medio Izquierdo',
+  MD: 'Medio Derecho',
+  EI: 'Extremo Izquierdo',
+  ED: 'Extremo Derecho',
+  DC: 'Delantero Centro',
+};
 
 export interface Player {
   id: string;
   name: string;
   number: number;
+  position?: PlayerPosition;
+  role?: PlayerRole;
+  isCaptain?: boolean;
 }
 
 export interface MatchEvent {
@@ -148,6 +175,9 @@ export function createDefaultMatch(): MatchState {
       primaryColor: '#3b82f6',
       secondaryColor: '#1e40af',
       players: [],
+      lineup: [],
+      formation: '4-4-2',
+      coach: '',
     },
     awayTeam: {
       id: 'team-2',
@@ -157,6 +187,9 @@ export function createDefaultMatch(): MatchState {
       primaryColor: '#ef4444',
       secondaryColor: '#b91c1c',
       players: [],
+      lineup: [],
+      formation: '4-4-2',
+      coach: '',
     },
     homeScore: 0,
     awayScore: 0,
