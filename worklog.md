@@ -111,3 +111,48 @@ Stage Summary:
   c) Manual build + push of `out/` to gh-pages branch, OR
   d) Switch to Vercel/Netlify for deployment
 - The deploy.yml workflow file is saved locally at `.github/workflows/deploy.yml.bak` for reference
+---
+Task ID: 4
+Agent: Main Agent
+Task: Reconstruir diseño exacto del LEEME.md y deploy funcional
+
+Work Log:
+- Usuario reportó: deploy no muestra nada, diseño no coincide con LEEME
+- Diagnóstico: Jekyll procesaba archivos fuente (no compilados) + faltaba .nojekyll en gh-pages
+- Reconstruí globals.css con TODAS las clases exactas del LEEME:
+  - glass-panel-main (rgba 0.08, blur 20px, border 0.15, inset shadow)
+  - glass-panel-stats (rgba 0.06, blur 16px, border 0.12)
+  - glass-panel-event (rgba 0.07, blur 12px, border 0.13)
+  - glass-button (rgba 0.15, blur 8px, hover translateY(-2px))
+  - ad-space (rgba 0.05, DASHED border 0.2)
+  - parallax-bg (exact gradients with #1e3a8a, 20s animation)
+  - stadium-bokeh (white radial gradients, blur 60px, 15s float)
+  - stat-bar / stat-bar-fill (gradient #60a5fa to #3b82f6)
+  - event-timeline with ::before line
+- Reconstruí StadiumDisplay con layout exacto del LEEME (líneas 227-492):
+  - Grid 3 columnas: Escudo circular | Marcador | Escudo circular
+  - Escudos: w-32/w-40, border-4, gradient con colores del equipo
+  - Score: text-7xl/text-9xl font-black text-white text-shadow-md
+  - Timer: text-4xl/text-5xl font-mono text-blue-300
+  - Barras de estadísticas (Posesión 55%, Tiros 5-3)
+  - Layout: Ad top → Scoreboard centrado → Timeline → Ad bottom
+- Reconstruí ControlPanel con glassmorphism exacto:
+  - Todos los botones usan glass-button (rgba 0.15, hover translateY(-2px))
+  - Inputs usan glass-input (rgba 0.06, blur 8px)
+  - Secciones usan glass-panel-main/stats/event según contenido
+- Deploy solucionado:
+  1. Build estático: `next build` → `out/`
+  2. Rama `gh-pages` con archivos compilados + `.nojekyll`
+  3. GitHub Pages configurado via API: source=gh-pages, path=/
+  4. URL: https://focushaventeam-cloud.github.io/Profutbol/
+- Verificado con agent-browser:
+  - Control panel carga con 5 tabs funcionales
+  - +Gol funciona (score 0→1)
+  - Display muestra: escudos circulares, score 1-0, timer, stats, ads, parallax+bokeh
+
+Stage Summary:
+- Deploy FUNCIONAL en https://focushaventeam-cloud.github.io/Profutbol/
+- Diseño coincide con LEEME.md: glassmorphism exacto, stat bars, escudos circulares
+- Todas las 5 pestañas del control funcionan
+- Display de estadio con parallax + bokeh + skins
+- Commits: main push (25fd223), gh-pages push (58ace6d)
