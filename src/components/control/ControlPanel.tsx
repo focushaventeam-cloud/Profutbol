@@ -216,8 +216,8 @@ function ScoreControl() {
   const resetMatch = useScoreboardStore((s) => s.resetMatch);
 
   const openDisplayWindow = () => {
-    const url = window.location.href.split('?')[0] + '?mode=display';
-    window.open(url, 'profutbol-display', 'width=1920,height=1080');
+    const base = window.location.origin + (window.location.pathname.includes('/Profutbol') ? '/Profutbol' : '');
+    window.open(`${base}/marcador`, 'profutbol-display', 'width=1920,height=1080');
   };
 
   return (
@@ -237,6 +237,9 @@ function ScoreControl() {
             <div className="text-xs font-normal text-blue-300/50 mt-0.5">Se abre en una nueva ventana para el monitor del estadio</div>
           </div>
         </button>
+        <p className="text-[10px] text-white/20 text-center mt-2">
+          Tambi&eacute;n puedes abrir manualmente: <span className="text-white/30 font-mono">/marcador</span> en la misma pesta&ntilde;a del navegador o en otro monitor
+        </p>
       </div>
 
       {/* Score */}

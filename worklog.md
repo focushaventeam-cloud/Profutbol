@@ -182,3 +182,30 @@ Stage Summary:
 - window.open() opens display in new window for second monitor
 - Display window has fullscreen button and auto-hides cursor
 - Dev server stable at ~26KB page size
+---
+Task ID: 6
+Agent: Main Agent
+Task: Multi-monitor separate pages architecture + commit
+
+Work Log:
+- Created `/src/app/marcador/page.tsx` — standalone display page for second monitor
+- Simplified `/src/app/page.tsx` — removed `?mode=display` query param switching, now control-only
+- Updated ControlPanel "Abrir Marcador" button to open `/marcador` route instead of `?mode=display`
+- Added hint text about manual `/marcador` URL access for popup-blocked scenarios
+- Fixed ESLint error: `useDisplaySync` called inside useEffect (replaced with direct `broadcastDisplayJoined()`)
+- Full agent-browser verification:
+  - All 5 tabs functional (Marcador, Partido, Eventos, Publicidad, Skins)
+  - Score +Gol works (0→1)
+  - Timer starts and counts (00:02 after 2 seconds)
+  - Event dialog opens, accepts player name + number, submits (EVENTOS REGISTRADOS (1))
+  - Publicidad: ad creation works, shows "PUBLICIDADES (1)"
+  - Skins: default skin visible, create button available
+  - Cross-tab BroadcastChannel sync VERIFIED: +Gol on control tab → marcador tab shows 1-0
+- Lint passes clean
+- Both routes return HTTP 200
+
+Stage Summary:
+- Multi-monitor architecture: `/` = control panel, `/marcador` = stadium display
+- BroadcastChannel cross-tab sync fully operational
+- All control panel functions verified working
+- Ready for commit and push
