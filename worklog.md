@@ -76,3 +76,38 @@ Stage Summary:
 - Timer runs in real-time
 - Score updates reflect immediately in display
 - Known issue: dev server occasionally crashes (OOM in constrained environment)
+---
+Task ID: 3
+Agent: Main Agent
+Task: Fix GitHub Pages deployment — Jekyll build failure
+
+Work Log:
+- Diagnosed error: GitHub Pages was using `actions/jekyll-build-pages@v1` (Jekyll) on a Next.js project
+- Root causes identified:
+  1. 1027 `skills/` files with YAML frontmatter containing colons → Jekyll YAML parse errors
+  2. `LEEME.md` (2408 lines) with Next.js template literals (`${match.stats?.possession.home || 50}`) → Jekyll Liquid syntax error
+  3. No `.nojekyll` file to disable Jekyll processing
+  4. `next.config.ts` had `output: "standalone"` instead of `output: "export"`
+- Actions taken:
+  1. `git rm --cached -r skills/` — removed 1027 skill files from git tracking
+  2. `git rm --cached LEEME.md` — removed design doc from git tracking
+  3. Updated `.gitignore` to permanently ignore `skills/` and `LEEME.md`
+  4. Created `.nojekyll` file to disable Jekyll processing on GitHub Pages
+  5. Updated `next.config.ts`: `output: "export"`, `basePath: "/Profutbol"`, `images: { unoptimized: true }`
+  6. Updated `package.json` build script: simplified to `next build`
+  7. Created `.github/workflows/deploy.yml` (Next.js static build → GitHub Pages via actions/deploy-pages)
+  8. Workflow file could NOT be pushed (token lacks `workflow` scope) — removed from commit
+  9. Pushed commit `0a121fb` with all fixes to GitHub
+- Verified: `next build` succeeds, generates `out/` directory with correct HTML
+- Static HTML verified: assets reference `/Profutbol/_next/static/...` correctly
+
+Stage Summary:
+- Main Jekyll error FIXED: problematic files removed, .nojekyll added
+- Next.js static export WORKS: `next build` generates proper `out/` directory
+- Commit pushed to GitHub: `0a121fb fix: eliminar Jekyll, configurar exportación estática Next.js para GitHub Pages`
+- REMAINING ISSUE: GitHub Pages needs either:
+  a) A Personal Access Token with `workflow` scope to push the deploy.yml workflow, OR
+  b) GitHub Pages source set to "Deploy from branch" (but then it serves source, not built files), OR
+  c) Manual build + push of `out/` to gh-pages branch, OR
+  d) Switch to Vercel/Netlify for deployment
+- The deploy.yml workflow file is saved locally at `.github/workflows/deploy.yml.bak` for reference
