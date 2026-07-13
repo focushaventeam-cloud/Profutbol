@@ -323,3 +323,28 @@ Stage Summary:
 - Sistema de skins funcional: crear, editar colores, activar (solo el activo se aplica al display)
 - Commits: 127e4c9 (reestructura inicial), 6a908d5 (equipos + skins)
 - Push a GitHub completado en ambos commits
+
+---
+Task ID: 10
+Agent: Main Agent
+Task: Fix shared screens, skins activation, and ads system (image/video upload)
+
+Work Log:
+- Analyzed user complaints: shared screens not working, skins don't change display colors, ads need file upload instead of URLs
+- Updated AdData type: replaced `imageUrl: string` with `mediaData: string` (base64) + `mediaType: 'image' | 'video' | 'none'`
+- Rewrote StadiumDisplay.tsx: AdBanner now supports video (autoplay, muted, loop) and auto-cycling ads based on duration
+- Rewrote PublicidadTab in ControlPanel: file upload with drag area, accepts image/* and video/mp4,video/webm, shows thumbnails, no URL inputs
+- Added DisplayPreview component: live overlay modal showing StadiumDisplay in real-time from within the control panel
+- Fixed basePath for "Abrir Marcador" button: detects /Profutbol in URL and prepends accordingly
+- Fixed skins: StadiumDisplay uses direct Zustand selectors (skins, activeSkinId) instead of getActiveSkin function
+- Removed old unused files from liga-futve era (api routes, components, data, hooks, types)
+- Cleaned .gitignore to exclude node_modules
+- Deployed to gh-pages via fresh repo push
+- Verified with agent-browser: page loads, all 5 tabs work, Vista Previa opens display overlay, skins can be created/activated, Ads tab shows file upload
+
+Stage Summary:
+- Key fix: "Vista Previa" button now provides a live real-time preview of the scoreboard display directly in the control panel
+- Skins work correctly: activating a skin changes the display colors immediately (verified via Zustand selectors)
+- Ads system completely redesigned: no URLs, only file uploads for images and short videos
+- BroadcastChannel sync still available for two-tab setup, but preview overlay is the primary way to see the display
+- Deployed at: https://focushaventeam-cloud.github.io/Profutbol/
