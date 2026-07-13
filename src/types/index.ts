@@ -5,15 +5,14 @@
 export type MatchStatus = 'waiting' | 'live' | 'halftime' | 'finished';
 export type MatchPeriod = 'first_half' | 'second_half';
 export type TeamSide = 'home' | 'away';
-
-/** Tipos de partido según la cancha */
 export type MatchFormat = 'futbol5' | 'futbol7' | 'futbol8' | 'futbol11';
 
 export interface Team {
   name: string;
   shortName: string;
-  color: string;       // Color principal
-  colorSecondary: string; // Color secundario
+  color: string;
+  colorSecondary: string;
+  logo: string; // base64 data URL o vacío
 }
 
 export type EventType = 'goal' | 'yellow_card' | 'red_card';
@@ -34,12 +33,38 @@ export interface MatchState {
   awayScore: number;
   status: MatchStatus;
   period: MatchPeriod;
-  currentTime: number;     // segundos transcurridos
-  halfDuration: number;    // duración de cada tiempo en minutos
-  format: MatchFormat;     // tipo de partido
+  currentTime: number;
+  halfDuration: number;
+  format: MatchFormat;
   events: MatchEvent[];
-  field: string;           // nombre de la cancha
+  field: string;
 }
+
+// ── Skins ──────────────────────────────────────────────────────────────────────
+
+export interface SkinData {
+  id: string;
+  name: string;
+  backgroundColor: string;
+  textColor: string;
+  scoreColor: string;
+  timerColor: string;
+  accentColor: string;
+  panelBackground: string;
+  panelBorder: string;
+}
+
+export const DEFAULT_SKIN: SkinData = {
+  id: 'default',
+  name: 'Predeterminado',
+  backgroundColor: '#0c1220',
+  textColor: '#ffffff',
+  scoreColor: '#ffffff',
+  timerColor: '#ffffff',
+  accentColor: '#10b981',
+  panelBackground: 'rgba(255,255,255,0.03)',
+  panelBorder: 'rgba(255,255,255,0.06)',
+};
 
 // ── Labels ────────────────────────────────────────────────────────────────────
 
@@ -93,12 +118,14 @@ export function createDefaultMatch(): MatchState {
       shortName: 'LOCAL',
       color: '#3b82f6',
       colorSecondary: '#1e40af',
+      logo: '',
     },
     awayTeam: {
       name: 'Equipo Visitante',
       shortName: 'VISITA',
       color: '#ef4444',
       colorSecondary: '#b91c1c',
+      logo: '',
     },
     homeScore: 0,
     awayScore: 0,
