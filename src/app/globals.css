@@ -1,26 +1,183 @@
 @import "tailwindcss";
 
 @theme {
-  --color-stadium-bg: #0c1220;
-  --color-accent: #10b981;
-  --color-accent-light: #34d399;
+  --color-stadium-bg: #0a1628;
+  --color-stadium-dark: #060e1a;
+  --color-glass: rgba(255, 255, 255, 0.08);
+  --color-glass-hover: rgba(255, 255, 255, 0.15);
+  --color-glass-border: rgba(255, 255, 255, 0.15);
+  --color-glass-border-hover: rgba(255, 255, 255, 0.25);
+  --color-accent: #3b82f6;
+  --color-accent-light: #60a5fa;
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 * {
-  border-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 body {
   font-family: var(--font-sans);
-  background: #0f172a;
+  background-color: var(--color-stadium-bg);
   color: white;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom scrollbar */
+/* ── Glass Panels ────────────────────────────────────────────────────────────── */
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1rem;
+}
+
+.glass-panel-strong {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 1.5rem;
+}
+
+/* ── Glass Inputs ────────────────────────────────────────────────────────────── */
+
+.glass-input {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
+  color: white;
+  padding: 0.5rem 0.75rem;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.glass-input:focus {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.glass-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* ── Parallax Background ─────────────────────────────────────────────────────── */
+
+.parallax-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 40%, rgba(59, 130, 246, 0.15), transparent),
+    radial-gradient(ellipse 60% 60% at 80% 20%, rgba(99, 102, 241, 0.1), transparent),
+    radial-gradient(ellipse 70% 40% at 50% 80%, rgba(59, 130, 246, 0.08), transparent);
+  animation: parallaxShift 20s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* ── Stadium Bokeh ───────────────────────────────────────────────────────────── */
+
+.stadium-bokeh {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  background:
+    radial-gradient(circle 300px at 15% 25%, rgba(59, 130, 246, 0.08), transparent),
+    radial-gradient(circle 200px at 75% 65%, rgba(99, 102, 241, 0.06), transparent),
+    radial-gradient(circle 250px at 50% 50%, rgba(59, 130, 246, 0.04), transparent);
+  filter: blur(60px);
+  animation: bokehFloat 15s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* ── Keyframes ───────────────────────────────────────────────────────────────── */
+
+@keyframes parallaxShift {
+  0%,
+  100% {
+    background-position: 0% 0%, 100% 0%, 50% 100%;
+  }
+  25% {
+    background-position: 10% 5%, 90% 10%, 45% 95%;
+  }
+  50% {
+    background-position: 5% 10%, 95% 5%, 55% 90%;
+  }
+  75% {
+    background-position: 10% 5%, 85% 15%, 50% 95%;
+  }
+}
+
+@keyframes bokehFloat {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.7;
+  }
+  33% {
+    transform: translate(20px, -15px) scale(1.05);
+    opacity: 0.9;
+  }
+  66% {
+    transform: translate(-15px, 10px) scale(0.95);
+    opacity: 0.8;
+  }
+}
+
+@keyframes scoreFlash {
+  0% {
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.8), 0 0 40px rgba(255, 255, 255, 0.4);
+    transform: scale(1.15);
+  }
+  100% {
+    text-shadow: none;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 5px rgba(59, 130, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.6), 0 0 40px rgba(59, 130, 246, 0.2);
+  }
+}
+
+/* ── Animation Utilities ─────────────────────────────────────────────────────── */
+
+.animate-score-flash {
+  animation: scoreFlash 0.6s ease-out;
+}
+
+.animate-slide-in-up {
+  animation: slideInUp 0.4s ease-out;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* ── Custom Scrollbar (Dark Theme) ──────────────────────────────────────────── */
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -39,7 +196,60 @@ body {
   background: rgba(255, 255, 255, 0.25);
 }
 
-/* Custom number input spinners hidden */
+/* ── Text Shadows ────────────────────────────────────────────────────────────── */
+
+.text-shadow-sm {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.text-shadow-md {
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+.text-shadow-lg {
+  text-shadow: 0 4px 16px rgba(0, 0, 0, 0.7);
+}
+
+/* ── Ad Space ────────────────────────────────────────────────────────────────── */
+
+.ad-space {
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+}
+
+/* ── Stat Bars ───────────────────────────────────────────────────────────────── */
+
+.stat-bar {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.stat-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-accent), var(--color-accent-light));
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+/* ── Card Indicators ─────────────────────────────────────────────────────────── */
+
+.card-yellow {
+  background: linear-gradient(135deg, #facc15, #eab308);
+}
+
+.card-red {
+  background: linear-gradient(135deg, #f87171, #dc2626);
+}
+
+/* ── Number Input Spinners Hidden ────────────────────────────────────────────── */
+
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
   -webkit-appearance: none;
@@ -50,9 +260,22 @@ input[type="number"] {
   -moz-appearance: textfield;
 }
 
-/* Display mode: hide cursor on TV/monitor */
+/* ── Display & Control Modes ─────────────────────────────────────────────────── */
+
 .display-mode {
   overflow: hidden;
   cursor: none;
   user-select: none;
+}
+
+.control-mode {
+  overflow-y: auto;
+}
+
+/* ── Tab Active ──────────────────────────────────────────────────────────────── */
+
+.tab-active {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: white;
 }

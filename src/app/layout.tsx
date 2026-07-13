@@ -28,7 +28,7 @@ export default function RootLayout({
   return (
     <html lang="es" className="dark" suppressHydrationWarning>
       <body
-        className={`${inter.variable} antialiased bg-[#0f172a] text-white`}
+        className={`${inter.variable} antialiased bg-[#0a1628] text-white`}
         style={{ fontFamily: "'Inter', system-ui, -apple-system, sans-serif" }}
       >
         {children}

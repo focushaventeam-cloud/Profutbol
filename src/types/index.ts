@@ -3,7 +3,12 @@
 // ============================================================================
 
 export type MatchStatus = 'waiting' | 'live' | 'halftime' | 'finished';
-export type MatchPeriod = 'first_half' | 'second_half';
+export type MatchPeriod =
+  | 'first_half'
+  | 'second_half'
+  | 'extra_time_first'
+  | 'extra_time_second'
+  | 'penalties';
 export type TeamSide = 'home' | 'away';
 export type MatchFormat = 'futbol5' | 'futbol7' | 'futbol8' | 'futbol11';
 
@@ -15,7 +20,15 @@ export interface Team {
   logo: string; // base64 data URL o vacío
 }
 
-export type EventType = 'goal' | 'yellow_card' | 'red_card';
+export type EventType =
+  | 'goal'
+  | 'penalty_goal'
+  | 'own_goal'
+  | 'yellow_card'
+  | 'red_card'
+  | 'substitution'
+  | 'var_review'
+  | 'injury';
 
 export interface MatchEvent {
   id: string;
@@ -23,6 +36,10 @@ export interface MatchEvent {
   team: TeamSide;
   playerName?: string;
   minute: number;
+  description?: string;
+  // Substitution fields (no Player interface — simple strings)
+  playerInName?: string;
+  playerOutName?: string;
 }
 
 export interface MatchState {
@@ -38,9 +55,21 @@ export interface MatchState {
   format: MatchFormat;
   events: MatchEvent[];
   field: string;
+  addedTime: number;
+  extraTimeAdded: number; // seconds of added time for current half
 }
 
-// ── Skins ──────────────────────────────────────────────────────────────────────
+// ── Ads ──────────────────────────────────────────────────────────────────────
+
+export interface AdData {
+  id: string;
+  text: string;
+  imageUrl: string;
+  duration: number; // seconds to show each ad
+  active: boolean;
+}
+
+// ── Skins ────────────────────────────────────────────────────────────────────
 
 export interface SkinData {
   id: string;
@@ -89,6 +118,9 @@ export const HALF_DURATION_OPTIONS = [
 export const PERIOD_LABELS: Record<MatchPeriod, string> = {
   first_half: '1er Tiempo',
   second_half: '2do Tiempo',
+  extra_time_first: 'Prórroga 1',
+  extra_time_second: 'Prórroga 2',
+  penalties: 'Penales',
 };
 
 export const STATUS_LABELS: Record<MatchStatus, string> = {
@@ -100,14 +132,24 @@ export const STATUS_LABELS: Record<MatchStatus, string> = {
 
 export const EVENT_ICONS: Record<EventType, string> = {
   goal: '\u26BD',
+  penalty_goal: '\u26BD',
+  own_goal: '\u26BD',
   yellow_card: '\uD83D\uDFE8',
   red_card: '\uD83D\uDFE5',
+  substitution: '\uD83D\uDD04',
+  var_review: '\uD83D\uDCFA',
+  injury: '\uD83E\uDE79',
 };
 
 export const EVENT_LABELS: Record<EventType, string> = {
   goal: 'Gol',
+  penalty_goal: 'Penal',
+  own_goal: 'Autogol',
   yellow_card: 'Amarilla',
   red_card: 'Roja',
+  substitution: 'Cambio',
+  var_review: 'VAR',
+  injury: 'Lesión',
 };
 
 export function createDefaultMatch(): MatchState {
@@ -136,5 +178,7 @@ export function createDefaultMatch(): MatchState {
     format: 'futbol5',
     events: [],
     field: 'Cancha 1',
+    addedTime: 0,
+    extraTimeAdded: 0,
   };
 }

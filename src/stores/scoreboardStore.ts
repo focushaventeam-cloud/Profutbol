@@ -8,6 +8,7 @@ import {
   MatchFormat,
   EventType,
   SkinData,
+  AdData,
   DEFAULT_SKIN,
   createDefaultMatch,
 } from '@/types';
@@ -34,6 +35,8 @@ interface ScoreboardStore {
   // Status & Period
   setStatus: (status: MatchStatus) => void;
   setPeriod: (period: MatchPeriod) => void;
+  setAddedTime: (seconds: number) => void;
+  setExtraTimeAdded: (seconds: number) => void;
 
   // Teams
   setTeamName: (side: TeamSide, name: string, shortName: string) => void;
@@ -57,6 +60,15 @@ interface ScoreboardStore {
   setActiveSkin: (skinId: string) => void;
   updateSkin: (skinId: string, data: Partial<SkinData>) => void;
 
+  // Ads
+  ads: AdData[];
+  activeAdIndex: number;
+  addAd: (ad: AdData) => void;
+  removeAd: (adId: string) => void;
+  updateAd: (adId: string, data: Partial<AdData>) => void;
+  cycleAd: () => void;
+  setActiveAd: (index: number) => void;
+
   // Sync
   applySyncState: (state: Record<string, unknown>) => void;
 }
@@ -76,6 +88,8 @@ function queueBroadcast() {
         isTimerRunning: state.isTimerRunning,
         skins: state.skins,
         activeSkinId: state.activeSkinId,
+        ads: state.ads,
+        activeAdIndex: state.activeAdIndex,
       });
     });
   }
@@ -93,21 +107,30 @@ export const useScoreboardStore = create<ScoreboardStore>((set, get) => {
       queueBroadcast();
     },
     resetMatch: () => {
-      set({ match: createDefaultMatch(), isTimerRunning: false });
+      set({
+        match: createDefaultMatch(),
+        isTimerRunning: false,
+        ads: [],
+        activeAdIndex: 0,
+      });
       queueBroadcast();
     },
 
+    // ── Timer ────────────────────────────────────────────────────────────────
     isTimerRunning: false,
     startTimer: () => {
       const { match } = get();
       if (match.status === 'waiting' || match.status === 'halftime') {
+        const nextPeriod: MatchPeriod =
+          match.status === 'waiting' ? 'first_half' : 'second_half';
         set({
           isTimerRunning: true,
           match: {
             ...match,
             status: 'live' as MatchStatus,
-            period: match.status === 'waiting' ? 'first_half' as MatchPeriod : 'second_half' as MatchPeriod,
+            period: nextPeriod,
             currentTime: match.status === 'halftime' ? 0 : match.currentTime,
+            extraTimeAdded: match.status === 'halftime' ? 0 : match.extraTimeAdded,
           },
         });
       } else {
@@ -115,18 +138,79 @@ export const useScoreboardStore = create<ScoreboardStore>((set, get) => {
       }
       queueBroadcast();
     },
-    pauseTimer: () => { set({ isTimerRunning: false }); queueBroadcast(); },
-    resetTimer: () => {
-      set({ isTimerRunning: false, match: { ...get().match, currentTime: 0, status: 'waiting' as MatchStatus, period: 'first_half' as MatchPeriod } });
+    pauseTimer: () => {
+      set({ isTimerRunning: false });
       queueBroadcast();
     },
-    setTimerSeconds: (seconds) => { set({ match: { ...get().match, currentTime: seconds } }); queueBroadcast(); },
+    resetTimer: () => {
+      set({
+        isTimerRunning: false,
+        match: {
+          ...get().match,
+          currentTime: 0,
+          status: 'waiting' as MatchStatus,
+          period: 'first_half' as MatchPeriod,
+          extraTimeAdded: 0,
+        },
+      });
+      queueBroadcast();
+    },
+    setTimerSeconds: (seconds) => {
+      set({ match: { ...get().match, currentTime: seconds } });
+      queueBroadcast();
+    },
     tickTimer: () => {
-      const { match } = get();
-      set({ match: { ...match, currentTime: match.currentTime + 1 } });
+      const { match, isTimerRunning } = get();
+      if (!isTimerRunning) return;
+
+      const newTime = match.currentTime + 1;
+      const halfSeconds = match.halfDuration * 60;
+      const maxTime = halfSeconds + match.extraTimeAdded;
+
+      // Auto-stop and transition when time is up
+      if (newTime > maxTime) {
+        switch (match.period) {
+          case 'first_half':
+            set({
+              isTimerRunning: false,
+              match: { ...match, currentTime: maxTime, status: 'halftime' as MatchStatus },
+            });
+            break;
+          case 'second_half':
+            set({
+              isTimerRunning: false,
+              match: { ...match, currentTime: maxTime, status: 'finished' as MatchStatus },
+            });
+            break;
+          case 'extra_time_first':
+            // Auto-advance to extra time second half
+            set({
+              match: {
+                ...match,
+                period: 'extra_time_second' as MatchPeriod,
+                currentTime: 0,
+                extraTimeAdded: 0,
+              },
+            });
+            break;
+          case 'extra_time_second':
+            set({
+              isTimerRunning: false,
+              match: { ...match, currentTime: maxTime, status: 'finished' as MatchStatus },
+            });
+            break;
+          case 'penalties':
+            // Timer keeps running during penalties, no auto-stop
+            set({ match: { ...match, currentTime: newTime } });
+            break;
+        }
+      } else {
+        set({ match: { ...match, currentTime: newTime } });
+      }
       queueBroadcast();
     },
 
+    // ── Score ────────────────────────────────────────────────────────────────
     updateScore: (team, delta) => {
       const { match } = get();
       const currentMinute = Math.floor(match.currentTime / 60) + 1;
@@ -158,9 +242,25 @@ export const useScoreboardStore = create<ScoreboardStore>((set, get) => {
       queueBroadcast();
     },
 
-    setStatus: (status) => { set({ match: { ...get().match, status } }); queueBroadcast(); },
-    setPeriod: (period) => { set({ match: { ...get().match, period, currentTime: 0 } }); queueBroadcast(); },
+    // ── Status & Period ──────────────────────────────────────────────────────
+    setStatus: (status) => {
+      set({ match: { ...get().match, status } });
+      queueBroadcast();
+    },
+    setPeriod: (period) => {
+      set({ match: { ...get().match, period, currentTime: 0, extraTimeAdded: 0 } });
+      queueBroadcast();
+    },
+    setAddedTime: (seconds) => {
+      set({ match: { ...get().match, addedTime: Math.max(0, seconds) } });
+      queueBroadcast();
+    },
+    setExtraTimeAdded: (seconds) => {
+      set({ match: { ...get().match, extraTimeAdded: Math.max(0, seconds) } });
+      queueBroadcast();
+    },
 
+    // ── Teams ────────────────────────────────────────────────────────────────
     setTeamName: (side, name, shortName) => {
       const key = side === 'home' ? 'homeTeam' : 'awayTeam';
       const team = get().match[key];
@@ -179,10 +279,20 @@ export const useScoreboardStore = create<ScoreboardStore>((set, get) => {
       set({ match: { ...get().match, [key]: { ...team, logo } } });
       queueBroadcast();
     },
-    setField: (field) => { set({ match: { ...get().match, field } }); queueBroadcast(); },
-    setFormat: (format) => { set({ match: { ...get().match, format } }); queueBroadcast(); },
-    setHalfDuration: (minutes) => { set({ match: { ...get().match, halfDuration: minutes } }); queueBroadcast(); },
+    setField: (field) => {
+      set({ match: { ...get().match, field } });
+      queueBroadcast();
+    },
+    setFormat: (format) => {
+      set({ match: { ...get().match, format } });
+      queueBroadcast();
+    },
+    setHalfDuration: (minutes) => {
+      set({ match: { ...get().match, halfDuration: minutes } });
+      queueBroadcast();
+    },
 
+    // ── Events ───────────────────────────────────────────────────────────────
     addEvent: (event) => {
       const { match } = get();
       set({ match: { ...match, events: [event, ...match.events] } });
@@ -198,14 +308,17 @@ export const useScoreboardStore = create<ScoreboardStore>((set, get) => {
       queueBroadcast();
     },
 
-    // ── Skins ───────────────────────────────────────────────────────────────
+    // ── Skins ────────────────────────────────────────────────────────────────
     skins: [DEFAULT_SKIN],
     activeSkinId: 'default',
     getActiveSkin: () => {
       const { skins, activeSkinId } = get();
       return skins.find((s) => s.id === activeSkinId) || DEFAULT_SKIN;
     },
-    addSkin: (skin) => { set({ skins: [...get().skins, skin] }); queueBroadcast(); },
+    addSkin: (skin) => {
+      set({ skins: [...get().skins, skin] });
+      queueBroadcast();
+    },
     removeSkin: (skinId) => {
       const { skins, activeSkinId } = get();
       set({
@@ -214,19 +327,59 @@ export const useScoreboardStore = create<ScoreboardStore>((set, get) => {
       });
       queueBroadcast();
     },
-    setActiveSkin: (skinId) => { set({ activeSkinId: skinId }); queueBroadcast(); },
+    setActiveSkin: (skinId) => {
+      set({ activeSkinId: skinId });
+      queueBroadcast();
+    },
     updateSkin: (skinId, data) => {
       set({ skins: get().skins.map((sk) => (sk.id === skinId ? { ...sk, ...data } : sk)) });
       queueBroadcast();
     },
 
-    // ── Sync ────────────────────────────────────────────────────────────────
+    // ── Ads ──────────────────────────────────────────────────────────────────
+    ads: [],
+    activeAdIndex: 0,
+    addAd: (ad) => {
+      set({ ads: [...get().ads, ad] });
+      queueBroadcast();
+    },
+    removeAd: (adId) => {
+      const { ads, activeAdIndex } = get();
+      const filtered = ads.filter((a) => a.id !== adId);
+      set({
+        ads: filtered,
+        activeAdIndex:
+          activeAdIndex >= filtered.length ? Math.max(0, filtered.length - 1) : activeAdIndex,
+      });
+      queueBroadcast();
+    },
+    updateAd: (adId, data) => {
+      set({ ads: get().ads.map((a) => (a.id === adId ? { ...a, ...data } : a)) });
+      queueBroadcast();
+    },
+    cycleAd: () => {
+      const { ads, activeAdIndex } = get();
+      if (ads.length <= 1) return;
+      set({ activeAdIndex: (activeAdIndex + 1) % ads.length });
+      queueBroadcast();
+    },
+    setActiveAd: (index) => {
+      const { ads } = get();
+      if (index >= 0 && index < ads.length) {
+        set({ activeAdIndex: index });
+        queueBroadcast();
+      }
+    },
+
+    // ── Sync ─────────────────────────────────────────────────────────────────
     applySyncState: (state) => {
       set({
         match: state.match as MatchState,
         isTimerRunning: state.isTimerRunning as boolean,
         skins: (state.skins as SkinData[]) || [DEFAULT_SKIN],
         activeSkinId: (state.activeSkinId as string) || 'default',
+        ads: (state.ads as AdData[]) || [],
+        activeAdIndex: (state.activeAdIndex as number) || 0,
       });
     },
   };
@@ -244,6 +397,8 @@ export function enableControlBroadcasting() {
       isTimerRunning: s.isTimerRunning,
       skins: s.skins,
       activeSkinId: s.activeSkinId,
+      ads: s.ads,
+      activeAdIndex: s.activeAdIndex,
     });
   });
 }
