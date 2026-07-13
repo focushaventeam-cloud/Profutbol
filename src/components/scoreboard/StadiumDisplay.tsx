@@ -1,7 +1,7 @@
 'use client';
 
 import { useScoreboardStore } from '@/stores/scoreboardStore';
-import { PERIOD_LABELS, STATUS_LABELS, EVENT_ICONS, SkinData } from '@/types';
+import { PERIOD_LABELS, STATUS_LABELS, EVENT_ICONS, EVENT_LABELS } from '@/types';
 
 function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60);
@@ -9,285 +9,225 @@ function formatTime(seconds: number): string {
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
-function AdBanner({ skin }: { skin: SkinData }) {
-  const ads = useScoreboardStore((s) => s.ads);
-  const idx = useScoreboardStore((s) => s.activeAdIndex);
-  const ad = ads.length > 0 ? ads[idx % ads.length] : null;
-
-  if (!ad) {
-    return (
-      <div className="ad-space rounded-xl py-2 px-4" style={{ borderColor: `${skin.primaryColor}20` }}>
-        <div className="rounded-lg py-2 text-center" style={{ background: `${skin.primaryColor}06` }}>
-          <p
-            className="text-xs sm:text-sm md:text-base font-medium uppercase tracking-[0.2em]"
-            style={{ color: `${skin.textColor}20` }}
-          >
-            Patrocinador Oficial
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="ad-space rounded-xl py-2 px-4" style={{ borderColor: `${skin.primaryColor}20` }}>
-      <div
-        className="rounded-lg py-2 px-4 flex items-center justify-center gap-3"
-        style={{ background: `${skin.primaryColor}08` }}
-      >
-        {ad.imageUrl && (
-          <img src={ad.imageUrl} alt={ad.text} className="h-6 sm:h-8 md:h-10 object-contain" />
-        )}
-        <p
-          className="text-xs sm:text-sm md:text-base font-medium uppercase tracking-[0.2em]"
-          style={{ color: `${skin.textColor}40` }}
-        >
-          {ad.text}
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function EventTimeline({ skin }: { skin: SkinData }) {
-  const events = useScoreboardStore((s) => s.match.events);
-  const homeTeam = useScoreboardStore((s) => s.match.homeTeam);
-  const awayTeam = useScoreboardStore((s) => s.match.awayTeam);
-  const recent = events.slice(0, 8);
-
-  if (recent.length === 0) return null;
-
-  return (
-    <div
-      className="glass-panel rounded-2xl p-3 sm:p-4 md:p-5"
-      style={{ background: `${skin.secondaryColor}12`, borderColor: `${skin.primaryColor}15` }}
-    >
-      <div className="relative flex items-center justify-center gap-3 sm:gap-4 md:gap-6 overflow-x-auto pb-1">
-        <div
-          className="absolute top-1/2 left-4 right-4 h-px -translate-y-1/2"
-          style={{ background: `${skin.textColor}08` }}
-        />
-        {recent.map((ev) => {
-          const team = ev.team === 'home' ? homeTeam : awayTeam;
-          return (
-            <div
-              key={ev.id}
-              className="relative z-10 flex flex-col items-center gap-1 min-w-[52px] sm:min-w-[64px] animate-slide-in-up"
-            >
-              <div className="text-xl sm:text-2xl md:text-3xl leading-none">{EVENT_ICONS[ev.type]}</div>
-              <div
-                className="text-[10px] sm:text-xs font-bold font-mono"
-                style={{ color: skin.textColor }}
-              >
-                {ev.minute}&apos;
-              </div>
-              <div
-                className="w-1.5 h-1.5 rounded-full"
-                style={{ backgroundColor: team.primaryColor }}
-              />
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
 export function StadiumDisplay() {
-  const skin = useScoreboardStore((s) => s.getActiveSkin());
-  const homeTeam = useScoreboardStore((s) => s.match.homeTeam);
-  const awayTeam = useScoreboardStore((s) => s.match.awayTeam);
-  const homeScore = useScoreboardStore((s) => s.match.homeScore);
-  const awayScore = useScoreboardStore((s) => s.match.awayScore);
-  const status = useScoreboardStore((s) => s.match.status);
-  const period = useScoreboardStore((s) => s.match.period);
-  const currentTime = useScoreboardStore((s) => s.match.currentTime);
-  const addedTime = useScoreboardStore((s) => s.match.addedTime);
-  const extraTimeAdded = useScoreboardStore((s) => s.match.extraTimeAdded);
-  const competition = useScoreboardStore((s) => s.match.competition);
-  const venue = useScoreboardStore((s) => s.match.venue);
+  const match = useScoreboardStore((s) => s.match);
+  const isTimerRunning = useScoreboardStore((s) => s.isTimerRunning);
 
+  const { homeTeam, awayTeam, homeScore, awayScore, status, period, currentTime, events, field, halfDuration, format } = match;
   const isLive = status === 'live';
   const isFinished = status === 'finished';
   const isHalftime = status === 'halftime';
-  const displayAdded = (period === 'extra_time_first' || period === 'extra_time_second')
-    ? extraTimeAdded
-    : addedTime;
+
+  // Show recent events (last 6)
+  const recentEvents = events.slice(0, 6);
+
+  // Count cards
+  const homeYellows = events.filter(e => e.type === 'yellow_card' && e.team === 'home').length;
+  const homeReds = events.filter(e => e.type === 'red_card' && e.team === 'home').length;
+  const awayYellows = events.filter(e => e.type === 'yellow_card' && e.team === 'away').length;
+  const awayReds = events.filter(e => e.type === 'red_card' && e.team === 'away').length;
 
   return (
-    <div
-      className="h-screen w-screen relative overflow-hidden select-none"
-      style={{ backgroundColor: skin.backgroundColor }}
-    >
-      <div className="parallax-bg" />
-      <div className="stadium-bokeh" />
+    <div className="h-screen w-screen bg-[#0c1220] flex flex-col items-center justify-center relative overflow-hidden select-none">
+      {/* Subtle gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[#0c1220] via-[#111827] to-[#0c1220]" />
 
-      <div className="relative z-10 h-full p-3 sm:p-5 md:p-8 lg:p-10 flex flex-col">
-        <div className="max-w-7xl mx-auto w-full flex-1 flex flex-col justify-center gap-3 sm:gap-4 md:gap-5">
-          {/* Header */}
-          <div className="flex items-center justify-between px-1">
-            <div className="flex items-center gap-2">
-              <span
-                className="text-[10px] sm:text-xs md:text-sm font-bold uppercase tracking-[0.15em] text-shadow-sm"
-                style={{ color: `${skin.textColor}80` }}
-              >
-                {competition}
-              </span>
-              <span style={{ color: `${skin.textColor}20` }}>│</span>
-              <span
-                className="text-[10px] sm:text-xs uppercase tracking-wider"
-                style={{ color: `${skin.textColor}40` }}
-              >
-                {venue}
-              </span>
-            </div>
-            {isLive ? (
-              <div className="flex items-center gap-2">
-                <span className="relative flex h-2 w-2 sm:h-2.5 sm:w-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-green-500" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 sm:h-2.5 sm:w-2.5 bg-green-500" />
-                </span>
-                <span className="text-[10px] sm:text-xs md:text-sm uppercase tracking-wider font-black text-green-400">
-                  EN VIVO
-                </span>
-              </div>
-            ) : isFinished ? (
-              <span className="text-[10px] sm:text-xs md:text-sm uppercase tracking-wider font-bold text-red-400/80">
-                FINALIZADO
-              </span>
-            ) : isHalftime ? (
-              <span className="text-[10px] sm:text-xs md:text-sm uppercase tracking-wider font-bold text-yellow-400/80">
-                MEDIO TIEMPO
-              </span>
-            ) : null}
+      {/* Top bar */}
+      <div className="relative z-10 w-full max-w-6xl mx-auto px-6 md:px-10 pt-6 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center">
+            <span className="text-white font-black text-[10px]">PF</span>
           </div>
-
-          {/* Top Ad */}
-          <AdBanner skin={skin} />
-
-          {/* Main Scoreboard */}
-          <div
-            className="glass-panel-strong rounded-3xl p-4 sm:p-6 md:p-10 lg:p-14 relative overflow-hidden"
-            style={{
-              borderColor: `${skin.primaryColor}15`,
-              background: `linear-gradient(135deg, ${skin.secondaryColor}18, ${skin.backgroundColor}35)`,
-            }}
-          >
-            <div
-              className="absolute inset-0 pointer-events-none rounded-3xl"
-              style={{ background: `linear-gradient(135deg, ${skin.primaryColor}06, transparent 60%)` }}
-            />
-            <div className="relative z-10">
-              <div className="grid grid-cols-[1fr_auto_1fr] gap-2 sm:gap-4 md:gap-8 items-center">
-                {/* Home Team */}
-                <div className="flex flex-col items-center text-center gap-1 sm:gap-2">
-                  {homeTeam.logo && (
-                    <div
-                      className="w-14 h-14 sm:w-20 sm:h-20 md:w-28 md:h-28 rounded-full flex items-center justify-center border-2 md:border-4"
-                      style={{
-                        borderColor: `${homeTeam.primaryColor}40`,
-                        background: `linear-gradient(135deg, ${homeTeam.primaryColor}18, ${homeTeam.secondaryColor}12)`,
-                      }}
-                    >
-                      <img
-                        src={homeTeam.logo}
-                        alt={homeTeam.shortName}
-                        className="w-8 h-8 sm:w-12 sm:h-12 md:w-16 md:h-16 object-contain"
-                      />
-                    </div>
-                  )}
-                  <span
-                    key={`hn-${homeTeam.shortName}`}
-                    className="text-lg sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-black uppercase tracking-wide text-shadow-md truncate max-w-full animate-slide-in-up"
-                    style={{ color: homeTeam.primaryColor || skin.primaryColor }}
-                  >
-                    {homeTeam.shortName || homeTeam.name}
-                  </span>
-                </div>
-
-                {/* Score + Timer */}
-                <div className="text-center px-1 sm:px-4">
-                  <div className="flex items-baseline justify-center">
-                    <span
-                      key={`h${homeScore}`}
-                      className="text-[6rem] sm:text-[8rem] md:text-[10rem] lg:text-[12rem] xl:text-[14rem] font-black leading-none text-shadow-lg tabular-nums animate-score-flash"
-                      style={{ color: skin.scoreColor }}
-                    >
-                      {homeScore}
-                    </span>
-                    <span
-                      className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light mx-1 sm:mx-3 md:mx-5 lg:mx-6 text-shadow-md"
-                      style={{ color: `${skin.textColor}20` }}
-                    >
-                      –
-                    </span>
-                    <span
-                      key={`a${awayScore}`}
-                      className="text-[6rem] sm:text-[8rem] md:text-[10rem] lg:text-[12rem] xl:text-[14rem] font-black leading-none text-shadow-lg tabular-nums animate-score-flash"
-                      style={{ color: skin.scoreColor }}
-                    >
-                      {awayScore}
-                    </span>
-                  </div>
-                  <div className="mt-1 sm:mt-2 md:mt-3 flex items-center justify-center gap-2">
-                    <span
-                      className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-mono font-bold text-shadow-md tabular-nums"
-                      style={{ color: isLive ? skin.timerColor : `${skin.textColor}40` }}
-                    >
-                      {formatTime(currentTime)}
-                    </span>
-                    {displayAdded > 0 && (
-                      <span
-                        className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-mono font-bold text-shadow-sm"
-                        style={{ color: skin.primaryColor }}
-                      >
-                        +{displayAdded}
-                      </span>
-                    )}
-                  </div>
-                  <div
-                    className="text-[10px] sm:text-xs md:text-sm lg:text-base uppercase tracking-[0.2em] font-semibold mt-1 sm:mt-2 text-shadow-sm"
-                    style={{ color: `${skin.textColor}35` }}
-                  >
-                    {PERIOD_LABELS[period]}
-                  </div>
-                </div>
-
-                {/* Away Team */}
-                <div className="flex flex-col items-center text-center gap-1 sm:gap-2">
-                  {awayTeam.logo && (
-                    <div
-                      className="w-14 h-14 sm:w-20 sm:h-20 md:w-28 md:h-28 rounded-full flex items-center justify-center border-2 md:border-4"
-                      style={{
-                        borderColor: `${awayTeam.primaryColor}40`,
-                        background: `linear-gradient(135deg, ${awayTeam.primaryColor}18, ${awayTeam.secondaryColor}12)`,
-                      }}
-                    >
-                      <img
-                        src={awayTeam.logo}
-                        alt={awayTeam.shortName}
-                        className="w-8 h-8 sm:w-12 sm:h-12 md:w-16 md:h-16 object-contain"
-                      />
-                    </div>
-                  )}
-                  <span
-                    key={`an-${awayTeam.shortName}`}
-                    className="text-lg sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-black uppercase tracking-wide text-shadow-md truncate max-w-full animate-slide-in-up"
-                    style={{ color: awayTeam.primaryColor || skin.primaryColor }}
-                  >
-                    {awayTeam.shortName || awayTeam.name}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Event Timeline */}
-          <EventTimeline skin={skin} />
-
-          {/* Bottom Ad */}
-          <AdBanner skin={skin} />
+          <span className="text-white/40 text-xs md:text-sm font-medium uppercase tracking-widest">{field}</span>
+          <span className="text-white/15 text-xs">|</span>
+          <span className="text-white/30 text-xs uppercase tracking-wider">{format.replace('futbol', 'Fútbol ')}</span>
+          <span className="text-white/15 text-xs">|</span>
+          <span className="text-white/30 text-xs">{halfDuration}min c/tiempo</span>
         </div>
+        <div className="flex items-center gap-2">
+          {isLive && (
+            <div className="flex items-center gap-2 bg-green-500/15 border border-green-500/25 rounded-full px-3 py-1">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-green-400" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+              </span>
+              <span className="text-[11px] text-green-400 font-bold uppercase tracking-wider">En Vivo</span>
+            </div>
+          )}
+          {isFinished && (
+            <div className="bg-red-500/15 border border-red-500/25 rounded-full px-3 py-1">
+              <span className="text-[11px] text-red-400 font-bold uppercase tracking-wider">Finalizado</span>
+            </div>
+          )}
+          {isHalftime && (
+            <div className="bg-yellow-500/15 border border-yellow-500/25 rounded-full px-3 py-1">
+              <span className="text-[11px] text-yellow-400 font-bold uppercase tracking-wider">Medio Tiempo</span>
+            </div>
+          )}
+          {status === 'waiting' && (
+            <div className="bg-white/5 border border-white/10 rounded-full px-3 py-1">
+              <span className="text-[11px] text-white/40 font-bold uppercase tracking-wider">Sin Iniciar</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Main scoreboard */}
+      <div className="relative z-10 w-full max-w-6xl mx-auto px-6 md:px-10 flex-1 flex flex-col justify-center">
+        <div className="rounded-3xl overflow-hidden border border-white/[0.06] bg-white/[0.03] backdrop-blur-sm">
+          <div className="grid grid-cols-[1fr_auto_1fr] items-stretch">
+            {/* Home Team */}
+            <div
+              className="flex flex-col items-center justify-center p-6 md:p-10 lg:p-14 relative"
+              style={{
+                background: `linear-gradient(135deg, ${homeTeam.color}15, ${homeTeam.color}05)`,
+              }}
+            >
+              <div
+                className="absolute top-0 left-0 w-1.5 h-full"
+                style={{ backgroundColor: homeTeam.color }}
+              />
+              <div
+                className="w-16 h-16 md:w-24 md:h-24 lg:w-28 lg:h-28 rounded-2xl flex items-center justify-center mb-3 md:mb-4"
+                style={{
+                  backgroundColor: `${homeTeam.color}20`,
+                  border: `2px solid ${homeTeam.color}40`,
+                }}
+              >
+                <span
+                  className="text-2xl md:text-4xl lg:text-5xl font-black"
+                  style={{ color: homeTeam.color }}
+                >
+                  {homeTeam.shortName.slice(0, 3)}
+                </span>
+              </div>
+              <h2
+                className="text-lg md:text-2xl lg:text-3xl xl:text-4xl font-black uppercase tracking-wide text-center truncate max-w-full"
+                style={{ color: homeTeam.color }}
+              >
+                {homeTeam.shortName || homeTeam.name}
+              </h2>
+              {/* Cards summary */}
+              <div className="flex gap-1 mt-2 min-h-[20px]">
+                {Array.from({ length: homeYellows }).map((_, i) => (
+                  <span key={i} className="inline-block w-4 h-5 rounded-sm bg-yellow-400" />
+                ))}
+                {Array.from({ length: homeReds }).map((_, i) => (
+                  <span key={i} className="inline-block w-4 h-5 rounded-sm bg-red-500" />
+                ))}
+              </div>
+            </div>
+
+            {/* Score + Timer center */}
+            <div className="flex flex-col items-center justify-center px-4 md:px-8 lg:px-12 py-6 md:py-10 bg-white/[0.02] border-x border-white/[0.04] min-w-[200px] md:min-w-[280px]">
+              {/* Score */}
+              <div className="flex items-baseline justify-center gap-2 md:gap-4">
+                <span
+                  className="text-7xl md:text-[9rem] lg:text-[11rem] xl:text-[13rem] font-black leading-none tabular-nums"
+                  style={{ color: homeTeam.color }}
+                >
+                  {homeScore}
+                </span>
+                <span className="text-2xl md:text-4xl font-extralight text-white/15">-</span>
+                <span
+                  className="text-7xl md:text-[9rem] lg:text-[11rem] xl:text-[13rem] font-black leading-none tabular-nums"
+                  style={{ color: awayTeam.color }}
+                >
+                  {awayScore}
+                </span>
+              </div>
+
+              {/* Timer */}
+              <div className="mt-3 md:mt-4 flex flex-col items-center">
+                <div className="flex items-baseline gap-2">
+                  <span
+                    className={`text-3xl md:text-5xl lg:text-6xl font-mono font-bold tabular-nums ${
+                      isLive ? 'text-white' : 'text-white/30'
+                    }`}
+                  >
+                    {formatTime(currentTime)}
+                  </span>
+                </div>
+                <p className="text-[11px] md:text-sm text-white/25 uppercase tracking-[0.2em] font-semibold mt-1">
+                  {PERIOD_LABELS[period]}
+                </p>
+              </div>
+            </div>
+
+            {/* Away Team */}
+            <div
+              className="flex flex-col items-center justify-center p-6 md:p-10 lg:p-14 relative"
+              style={{
+                background: `linear-gradient(225deg, ${awayTeam.color}15, ${awayTeam.color}05)`,
+              }}
+            >
+              <div
+                className="absolute top-0 right-0 w-1.5 h-full"
+                style={{ backgroundColor: awayTeam.color }}
+              />
+              <div
+                className="w-16 h-16 md:w-24 md:h-24 lg:w-28 lg:h-28 rounded-2xl flex items-center justify-center mb-3 md:mb-4"
+                style={{
+                  backgroundColor: `${awayTeam.color}20`,
+                  border: `2px solid ${awayTeam.color}40`,
+                }}
+              >
+                <span
+                  className="text-2xl md:text-4xl lg:text-5xl font-black"
+                  style={{ color: awayTeam.color }}
+                >
+                  {awayTeam.shortName.slice(0, 3)}
+                </span>
+              </div>
+              <h2
+                className="text-lg md:text-2xl lg:text-3xl xl:text-4xl font-black uppercase tracking-wide text-center truncate max-w-full"
+                style={{ color: awayTeam.color }}
+              >
+                {awayTeam.shortName || awayTeam.name}
+              </h2>
+              {/* Cards summary */}
+              <div className="flex gap-1 mt-2 min-h-[20px]">
+                {Array.from({ length: awayYellows }).map((_, i) => (
+                  <span key={i} className="inline-block w-4 h-5 rounded-sm bg-yellow-400" />
+                ))}
+                {Array.from({ length: awayReds }).map((_, i) => (
+                  <span key={i} className="inline-block w-4 h-5 rounded-sm bg-red-500" />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Event Timeline */}
+        {recentEvents.length > 0 && (
+          <div className="mt-4 md:mt-6 px-2">
+            <div className="flex items-center justify-center gap-3 md:gap-5 flex-wrap">
+              {recentEvents.map((ev) => {
+                const team = ev.team === 'home' ? homeTeam : awayTeam;
+                return (
+                  <div key={ev.id} className="flex items-center gap-1.5 bg-white/[0.04] rounded-full px-3 py-1.5 border border-white/[0.04]">
+                    <span className="text-base md:text-lg">{EVENT_ICONS[ev.type]}</span>
+                    <span
+                      className="text-[10px] md:text-xs font-bold uppercase"
+                      style={{ color: team.color }}
+                    >
+                      {team.shortName.slice(0, 5)}
+                    </span>
+                    {ev.playerName && (
+                      <span className="text-[10px] md:text-xs text-white/30">({ev.playerName})</span>
+                    )}
+                    <span className="text-[10px] md:text-xs font-mono text-white/25">{ev.minute}&apos;</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Bottom branding */}
+      <div className="relative z-10 w-full px-6 md:px-10 pb-4 flex items-center justify-center">
+        <p className="text-white/10 text-[10px] uppercase tracking-[0.3em]">Profutbol — Marcador para Canchas</p>
       </div>
     </div>
   );

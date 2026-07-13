@@ -10,7 +10,7 @@ function useTimerTick() {
   const tickTimer = useScoreboardStore((s) => s.tickTimer);
   const currentTime = useScoreboardStore((s) => s.match.currentTime);
   const matchPeriod = useScoreboardStore((s) => s.match.period);
-  const addedTime = useScoreboardStore((s) => s.match.addedTime);
+  const halfDuration = useScoreboardStore((s) => s.match.halfDuration);
   const setStatus = useScoreboardStore((s) => s.setStatus);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -29,20 +29,15 @@ function useTimerTick() {
   useEffect(() => {
     if (!isTimerRunning) return;
     const mins = Math.floor(currentTime / 60);
-    const ends: Record<string, number> = {
-      first_half: 45,
-      second_half: 90,
-      extra_time_first: 105,
-      extra_time_second: 120,
-    };
-    const end = ends[matchPeriod];
-    if (end) {
-      const totalEnd = end + (addedTime > 0 ? addedTime : 0);
-      if (mins >= totalEnd) {
-        setStatus(matchPeriod === 'second_half' || matchPeriod === 'extra_time_second' ? 'finished' : 'halftime');
+    const halfEndsAt = halfDuration; // in minutes
+    if (mins >= halfEndsAt) {
+      if (matchPeriod === 'first_half') {
+        setStatus('halftime');
+      } else if (matchPeriod === 'second_half') {
+        setStatus('finished');
       }
     }
-  }, [currentTime, matchPeriod, addedTime, isTimerRunning, setStatus]);
+  }, [currentTime, matchPeriod, halfDuration, isTimerRunning, setStatus]);
 }
 
 // ── Control Panel Page ─────────────────────────────────────────────────────────
@@ -54,13 +49,7 @@ function ControlWindow() {
 
   useTimerTick();
 
-  return (
-    <div className="control-mode min-h-screen">
-      <div className="parallax-bg" />
-      <div className="stadium-bokeh" />
-      <ControlPanel />
-    </div>
-  );
+  return <ControlPanel />;
 }
 
 export default function Home() {

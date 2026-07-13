@@ -36,15 +36,6 @@ export default function MarcadorPage() {
     <div className="display-mode">
       <StadiumDisplay />
       <div className="fixed top-3 right-3 z-50 flex items-center gap-2">
-        {connected && (
-          <div className="flex items-center gap-1.5 bg-green-500/20 border border-green-500/30 rounded-full px-3 py-1.5 backdrop-blur-sm">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-green-400" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
-            </span>
-            <span className="text-[10px] text-green-300 font-medium tracking-wider">EN VIVO</span>
-          </div>
-        )}
         {!connected && (
           <div className="flex items-center gap-1.5 bg-yellow-500/20 border border-yellow-500/30 rounded-full px-3 py-1.5 backdrop-blur-sm">
             <span className="text-[10px] text-yellow-300 font-medium tracking-wider">ESPERANDO CONEXI&Oacute;N...</span>

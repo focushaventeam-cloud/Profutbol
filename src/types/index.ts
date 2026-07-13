@@ -1,65 +1,29 @@
 // ============================================================================
-// PROFUTBOL - STADIUM SCOREBOARD TYPES
+// PROFUTBOL - MARCADOR PARA CANCHAS DE ALQUILER (FÚTBOL 5 / 7 / 8 / 11)
 // ============================================================================
 
-export type MatchStatus = 'scheduled' | 'live' | 'halftime' | 'finished' | 'postponed';
-export type MatchPeriod = 'first_half' | 'second_half' | 'extra_time_first' | 'extra_time_second' | 'penalties';
-export type EventType = 'goal' | 'yellow_card' | 'red_card' | 'substitution' | 'var_review' | 'injury' | 'penalty_goal' | 'own_goal';
+export type MatchStatus = 'waiting' | 'live' | 'halftime' | 'finished';
+export type MatchPeriod = 'first_half' | 'second_half';
 export type TeamSide = 'home' | 'away';
-export type ViewMode = 'control' | 'display';
+
+/** Tipos de partido según la cancha */
+export type MatchFormat = 'futbol5' | 'futbol7' | 'futbol8' | 'futbol11';
 
 export interface Team {
-  id: string;
   name: string;
   shortName: string;
-  logo: string;
-  primaryColor: string;
-  secondaryColor: string;
-  players: Player[];
-  lineup: string[];
-  formation: Formation;
-  coach: string;
+  color: string;       // Color principal
+  colorSecondary: string; // Color secundario
 }
 
-export type PlayerPosition = 'POR' | 'DFC' | 'LI' | 'LD' | 'MCD' | 'MC' | 'MCO' | 'MI' | 'MD' | 'EI' | 'ED' | 'DC';
-export type PlayerRole = 'titular' | 'suplente' | 'cuerpo_tecnico';
-export type Formation = '4-4-2' | '4-3-3' | '4-2-3-1' | '3-5-2' | '3-4-3' | '5-3-2' | '4-5-1' | '4-1-4-1';
-
-export const FORMATIONS: string[] = ['4-4-2', '4-3-3', '4-2-3-1', '3-5-2', '3-4-3', '5-3-2', '4-5-1', '4-1-4-1'];
-
-export const POSITION_LABELS: Record<PlayerPosition, string> = {
-  POR: 'Portero',
-  DFC: 'Defensa Central',
-  LI: 'Lateral Izquierdo',
-  LD: 'Lateral Derecho',
-  MCD: 'Mediocentro Defensivo',
-  MC: 'Mediocentro',
-  MCO: 'Mediapunta',
-  MI: 'Medio Izquierdo',
-  MD: 'Medio Derecho',
-  EI: 'Extremo Izquierdo',
-  ED: 'Extremo Derecho',
-  DC: 'Delantero Centro',
-};
-
-export interface Player {
-  id: string;
-  name: string;
-  number: number;
-  position?: PlayerPosition;
-  role?: PlayerRole;
-  isCaptain?: boolean;
-}
+export type EventType = 'goal' | 'yellow_card' | 'red_card';
 
 export interface MatchEvent {
   id: string;
   type: EventType;
   team: TeamSide;
-  player?: Player;
-  playerIn?: Player;
-  playerOut?: Player;
+  playerName?: string;
   minute: number;
-  description?: string;
 }
 
 export interface MatchState {
@@ -70,142 +34,80 @@ export interface MatchState {
   awayScore: number;
   status: MatchStatus;
   period: MatchPeriod;
-  currentTime: number; // seconds
-  addedTime: number;
-  extraTimeAdded: number;
+  currentTime: number;     // segundos transcurridos
+  halfDuration: number;    // duración de cada tiempo en minutos
+  format: MatchFormat;     // tipo de partido
   events: MatchEvent[];
-  homeSkins: SkinData[];
-  awaySkins: SkinData[];
-  activeSkinId: string | null;
-  sponsorSkinId: string | null;
-  ads: AdData[];
-  activeAdIndex: number;
-  venue: string;
-  competition: string;
+  field: string;           // nombre de la cancha
 }
 
-export interface SkinData {
-  id: string;
-  name: string;
-  teamId: string;
-  type: 'team' | 'sponsor';
-  primaryColor: string;
-  secondaryColor: string;
-  accentColor: string;
-  backgroundColor: string;
-  textColor: string;
-  scoreColor: string;
-  timerColor: string;
-  logoUrl: string;
-  sponsorLogoUrl: string;
-  sponsorText: string;
-}
+// ── Labels ────────────────────────────────────────────────────────────────────
 
-export interface AdData {
-  id: string;
-  text: string;
-  imageUrl: string;
-  duration: number; // seconds to show
-  active: boolean;
-}
+export const FORMAT_OPTIONS: { value: MatchFormat; label: string; players: string }[] = [
+  { value: 'futbol5', label: 'Fútbol 5', players: '5 vs 5' },
+  { value: 'futbol7', label: 'Fútbol 7', players: '7 vs 7' },
+  { value: 'futbol8', label: 'Fútbol 8', players: '8 vs 8' },
+  { value: 'futbol11', label: 'Fútbol 11', players: '11 vs 11' },
+];
 
-export const DEFAULT_SKIN: SkinData = {
-  id: 'default',
-  name: 'Profutbol Default',
-  teamId: '',
-  type: 'sponsor',
-  primaryColor: '#3b82f6',
-  secondaryColor: '#1e40af',
-  accentColor: '#60a5fa',
-  backgroundColor: '#0a1628',
-  textColor: '#ffffff',
-  scoreColor: '#ffffff',
-  timerColor: '#60a5fa',
-  logoUrl: '',
-  sponsorLogoUrl: '',
-  sponsorText: '',
-};
+export const HALF_DURATION_OPTIONS = [
+  { value: 8, label: '8 min' },
+  { value: 10, label: '10 min' },
+  { value: 12, label: '12 min' },
+  { value: 15, label: '15 min' },
+  { value: 20, label: '20 min' },
+  { value: 25, label: '25 min' },
+  { value: 30, label: '30 min' },
+  { value: 45, label: '45 min' },
+];
 
 export const PERIOD_LABELS: Record<MatchPeriod, string> = {
   first_half: '1er Tiempo',
   second_half: '2do Tiempo',
-  extra_time_first: 'Prórroga 1',
-  extra_time_second: 'Prórroga 2',
-  penalties: 'Penales',
 };
 
 export const STATUS_LABELS: Record<MatchStatus, string> = {
-  scheduled: 'Programado',
+  waiting: 'Sin Iniciar',
   live: 'En Vivo',
   halftime: 'Medio Tiempo',
   finished: 'Finalizado',
-  postponed: 'Pospuesto',
 };
 
 export const EVENT_ICONS: Record<EventType, string> = {
   goal: '\u26BD',
   yellow_card: '\uD83D\uDFE8',
   red_card: '\uD83D\uDFE5',
-  substitution: '\uD83D\uDD04',
-  var_review: '\uD83D\uDCFA',
-  injury: '\uD83E\uDDE5',
-  penalty_goal: '\u26BD',
-  own_goal: '\u26BD',
 };
 
 export const EVENT_LABELS: Record<EventType, string> = {
-  goal: 'GOL',
+  goal: 'Gol',
   yellow_card: 'Amarilla',
   red_card: 'Roja',
-  substitution: 'Cambio',
-  var_review: 'VAR',
-  injury: 'Lesión',
-  penalty_goal: 'Penal',
-  own_goal: 'Autogol',
 };
 
 export function createDefaultMatch(): MatchState {
   return {
     id: 'match-1',
     homeTeam: {
-      id: 'team-1',
       name: 'Equipo Local',
       shortName: 'LOCAL',
-      logo: '',
-      primaryColor: '#3b82f6',
-      secondaryColor: '#1e40af',
-      players: [],
-      lineup: [],
-      formation: '4-4-2',
-      coach: '',
+      color: '#3b82f6',
+      colorSecondary: '#1e40af',
     },
     awayTeam: {
-      id: 'team-2',
       name: 'Equipo Visitante',
       shortName: 'VISITA',
-      logo: '',
-      primaryColor: '#ef4444',
-      secondaryColor: '#b91c1c',
-      players: [],
-      lineup: [],
-      formation: '4-4-2',
-      coach: '',
+      color: '#ef4444',
+      colorSecondary: '#b91c1c',
     },
     homeScore: 0,
     awayScore: 0,
-    status: 'scheduled',
+    status: 'waiting',
     period: 'first_half',
     currentTime: 0,
-    addedTime: 0,
-    extraTimeAdded: 0,
+    halfDuration: 12,
+    format: 'futbol5',
     events: [],
-    homeSkins: [],
-    awaySkins: [],
-    activeSkinId: 'default',
-    sponsorSkinId: null,
-    ads: [],
-    activeAdIndex: 0,
-    venue: 'Estadio Principal',
-    competition: 'Liga Local',
+    field: 'Cancha 1',
   };
 }

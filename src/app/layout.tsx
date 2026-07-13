@@ -9,8 +9,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Profutbol — Marcador de Estadio",
-  description: "Sistema profesional de marcación para pantallas de estadio y cancha de fútbol",
+  title: "Profutbol — Marcador para Canchas",
+  description: "Sistema de marcación para canchas de alquiler: Fútbol 5, 7, 8 y 11",
 };
 
 export const viewport: Viewport = {
@@ -28,7 +28,7 @@ export default function RootLayout({
   return (
     <html lang="es" className="dark" suppressHydrationWarning>
       <body
-        className={`${inter.variable} antialiased bg-[#0a1628] text-white`}
+        className={`${inter.variable} antialiased bg-[#0f172a] text-white`}
         style={{ fontFamily: "'Inter', system-ui, -apple-system, sans-serif" }}
       >
         {children}
