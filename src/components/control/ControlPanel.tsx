@@ -284,7 +284,7 @@ function ScoreTab() {
                 </Button>
                 <Button
                   size="sm" variant="outline"
-                  className="h-10 w-10 rounded-full p-0 border-red-500/30 text-red-500 hover:bg-red-500/10"
+                  className="h-10 w-10 rounded-full p-0 border-border/50 text-muted-foreground hover:bg-muted/50 hover:text-foreground"
                   onClick={() => updateScore('home', -1)} disabled={isFinished || match.homeScore <= 0}
                 >
                   <Minus className="w-5 h-5" />
@@ -338,7 +338,7 @@ function ScoreTab() {
                 </Button>
                 <Button
                   size="sm" variant="outline"
-                  className="h-10 w-10 rounded-full p-0 border-red-500/30 text-red-500 hover:bg-red-500/10"
+                  className="h-10 w-10 rounded-full p-0 border-border/50 text-muted-foreground hover:bg-muted/50 hover:text-foreground"
                   onClick={() => updateScore('away', -1)} disabled={isFinished || match.awayScore <= 0}
                 >
                   <Minus className="w-5 h-5" />
@@ -634,7 +634,7 @@ function SkinsTab() {
                         </Button>
                       )}
                       {isActive && (
-                        <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-1 rounded-full">ACTIVO</span>
+                        <span className="text-xs font-black tracking-wider text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-1 rounded-full">✓ ACTIVO</span>
                       )}
                       <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-muted-foreground" onClick={() => handleStartEdit(skin)}>
                         <Settings className="w-3.5 h-3.5" />

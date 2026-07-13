@@ -1,7 +1,7 @@
 'use client';
 
 import { useScoreboardStore } from '@/stores/scoreboardStore';
-import { PERIOD_LABELS, EVENT_ICONS } from '@/types';
+import { PERIOD_LABELS, EVENT_ICONS, DEFAULT_SKIN } from '@/types';
 
 function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60);
@@ -11,9 +11,9 @@ function formatTime(seconds: number): string {
 
 export function StadiumDisplay() {
   const match = useScoreboardStore((s) => s.match);
-  const getActiveSkin = useScoreboardStore((s) => s.getActiveSkin);
-
-  const skin = getActiveSkin();
+  const skins = useScoreboardStore((s) => s.skins);
+  const activeSkinId = useScoreboardStore((s) => s.activeSkinId);
+  const skin = skins.find((sk) => sk.id === activeSkinId) || DEFAULT_SKIN;
   const { homeTeam, awayTeam, homeScore, awayScore, status, period, currentTime, events, field, halfDuration, format } = match;
   const isLive = status === 'live';
   const isFinished = status === 'finished';
