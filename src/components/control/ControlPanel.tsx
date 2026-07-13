@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useScoreboardStore } from '@/stores/scoreboardStore';
 import {
   MatchStatus, MatchPeriod, EventType, TeamSide, MatchFormat,
   EVENT_ICONS, EVENT_LABELS, PERIOD_LABELS, STATUS_LABELS,
-  FORMAT_OPTIONS, HALF_DURATION_OPTIONS, SkinData, AdData,
+  FORMAT_OPTIONS, HALF_DURATION_OPTIONS, SkinData,
 } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,12 +13,13 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import {
   Play, Pause, RotateCcw, Plus, Minus, Trash2, Monitor,
   Trophy, Settings, List, Palette, Upload, X, Check, ImagePlus, Megaphone,
+  Eye, Maximize2, Film,
 } from 'lucide-react';
+import { StadiumDisplay } from '@/components/scoreboard/StadiumDisplay';
 
 const genId = () => `id-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
@@ -149,6 +150,11 @@ function ScoreTab() {
   const handleFinish = () => { pauseTimer(); setStatus('finished'); };
   const handleReset = () => { resetMatch(); setShowReset(false); };
 
+  const getMarcadorPath = () => {
+    const base = window.location.pathname.includes('/Profutbol') ? '/Profutbol' : '';
+    return `${base}/marcador`;
+  };
+
   const currentAdded = (match.period === 'extra_time_first' || match.period === 'extra_time_second') ? match.extraTimeAdded : match.addedTime;
 
   return (
@@ -204,7 +210,7 @@ function ScoreTab() {
             color: match.status === 'live' ? '#22c55e' : isFinished ? '#ef4444' : '#f59e0b' }}>
           {STATUS_LABELS[match.status]} • {PERIOD_LABELS[match.period]}
         </span>
-        <Button variant="ghost" size="sm" onClick={() => window.open('/marcador', '_blank')} className="gap-1.5 text-xs text-white/50 hover:text-white">
+        <Button variant="ghost" size="sm" onClick={() => window.open(getMarcadorPath(), '_blank')} className="gap-1.5 text-xs text-white/50 hover:text-white">
           <Monitor className="w-3.5 h-3.5" />Abrir Marcador
         </Button>
       </div>
@@ -267,22 +273,27 @@ function ScoreTab() {
         )}
         {isLive && <Button variant="ghost" className="h-11 text-sm font-bold text-yellow-400 hover:bg-yellow-500/10 gap-1.5" onClick={pauseTimer}><Pause className="w-4 h-4" />Pausar</Button>}
         {isLive && match.period === 'first_half' && <Button variant="ghost" className="h-11 text-sm font-bold text-orange-400 hover:bg-orange-500/10 gap-1.5" onClick={handleHalfTime}>Medio Tiempo</Button>}
-        {isLive && match.period === 'second_half' && <Button variant="ghost" className="h-11 text-sm font-bold text-blue-400 hover:bg-blue-500/10 gap-1.5" onClick={() => { pauseTimer(); setPeriod('extra_time_first'); setStatus('halftime'); }}>Prórroga</Button>}
-        {isLive && <Button variant="ghost" className="h-11 text-sm font-bold text-red-400 hover:bg-red-500/10 gap-1.5" onClick={handleFinish}><Trophy className="w-4 h-4" />Finalizar</Button>}
-        {match.status === 'halftime' && match.period === 'second_half' && (
-          <Button variant="ghost" className="h-11 text-sm font-bold text-blue-400 hover:bg-blue-500/10 gap-1.5" onClick={() => { pauseTimer(); setPeriod('extra_time_first'); }}>
-            <Play className="w-4 h-4" />Prórroga
-          </Button>
-        )}
-        <AlertDialog open={showReset} onOpenChange={setShowReset}>
-          <AlertDialogTrigger asChild>
-            <Button variant="ghost" className="h-11 text-sm font-bold text-red-400 hover:bg-red-500/10 gap-1.5"><RotateCcw className="w-4 h-4" />Nuevo</Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent className="bg-[#1a1a2e] border-white/10">
-            <AlertDialogHeader><AlertDialogTitle className="text-white">¿Reiniciar partido?</AlertDialogTitle><AlertDialogDescription className="text-white/60">Se perderán todos los datos.</AlertDialogDescription></AlertDialogHeader>
-            <AlertDialogFooter><AlertDialogCancel className="bg-white/10 text-white border-white/10 hover:bg-white/20">Cancelar</AlertDialogCancel><AlertDialogAction onClick={handleReset} className="bg-red-600 text-white hover:bg-red-700">Reiniciar</AlertDialogAction></AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        {isLive && match.period === 'second_half' && <Button variant="ghost" className="h-11 text-sm font-bold text-red-400 hover:bg-red-500/10 gap-1.5" onClick={handleFinish}>Finalizar</Button>}
+        {!isLive && !isFinished && !canStart && <Button variant="ghost" className="h-11 text-sm font-bold text-yellow-400 hover:bg-yellow-500/10 gap-1.5" onClick={startTimer}><Play className="w-4 h-4" />Reanudar</Button>}
+        <div className="col-span-2 md:col-span-1 flex justify-end">
+          <AlertDialog open={showReset} onOpenChange={setShowReset}>
+            <AlertDialogTrigger asChild>
+              <Button variant="ghost" className="h-11 text-sm gap-1.5 text-white/30 hover:text-red-400 hover:bg-red-500/10">
+                <RotateCcw className="w-4 h-4" />Reiniciar
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="bg-[#1a2332] border-white/10 text-white">
+              <AlertDialogHeader>
+                <AlertDialogTitle>¿Reiniciar partido?</AlertDialogTitle>
+                <AlertDialogDescription className="text-white/50">Se perderán todos los datos del partido actual, goles, tarjetas y eventos.</AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel className="bg-white/10 text-white hover:bg-white/20">Cancelar</AlertDialogCancel>
+                <AlertDialogAction className="bg-red-600 hover:bg-red-700 text-white" onClick={handleReset}>Reiniciar</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       </div>
     </div>
   );
@@ -295,106 +306,75 @@ function EventsTab() {
   const addEvent = useScoreboardStore((s) => s.addEvent);
   const removeEvent = useScoreboardStore((s) => s.removeEvent);
   const [playerName, setPlayerName] = useState('');
-  const [desc, setDesc] = useState('');
-  const [subIn, setSubIn] = useState('');
-  const [subOut, setSubOut] = useState('');
+
   const isFinished = match.status === 'finished';
-  const minute = Math.floor(match.currentTime / 60) + 1;
 
-  const add = (type: EventType, team: TeamSide) => {
-    addEvent({ id: genId(), type, team, playerName: playerName.trim() || undefined, minute, description: desc.trim() || undefined, playerInName: type === 'substitution' ? subIn.trim() || undefined : undefined, playerOutName: type === 'substitution' ? subOut.trim() || undefined : undefined });
-    if (type !== 'substitution') { setPlayerName(''); setDesc(''); }
-    else { setSubIn(''); setSubOut(''); setPlayerName(''); setDesc(''); }
-  };
-
-  const goalBtn = (type: EventType, team: TeamSide, label: string) => (
-    <Button key={`${type}-${team}`} variant="ghost" className="h-10 text-sm font-bold" style={{ backgroundColor: `${match[team === 'home' ? 'homeTeam' : 'awayTeam'].color}15`, color: match[team === 'home' ? 'homeTeam' : 'awayTeam'].color, border: `1px solid ${match[team === 'home' ? 'homeTeam' : 'awayTeam'].color}25` }}
-      onClick={() => add(type, team)} disabled={isFinished}>⚽ {label}</Button>
-  );
-
-  const cardBtn = (type: EventType, team: TeamSide) => {
-    const isYellow = type === 'yellow_card';
-    return (
-      <Button key={`${type}-${team}`} variant="ghost"
-        className={`h-10 text-sm font-bold ${isYellow ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20 hover:bg-yellow-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20 hover:bg-red-500/20'}`}
-        onClick={() => add(type, team)} disabled={isFinished}>
-        {isYellow ? '🟨' : '🟥'} {match[team === 'home' ? 'homeTeam' : 'awayTeam'].shortName.slice(0, 5)}
-      </Button>
-    );
+  const handleAdd = (type: EventType, team: TeamSide) => {
+    const currentMinute = Math.floor(match.currentTime / 60) + 1;
+    addEvent({
+      id: genId(),
+      type,
+      team,
+      playerName: playerName.trim() || undefined,
+      minute: currentMinute,
+    });
+    setPlayerName('');
   };
 
   return (
     <div className="space-y-3">
       <Card className="glass-panel rounded-xl">
-        <CardContent className="py-3 px-4 space-y-2">
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <Label className="text-xs text-white/50 mb-1 block">Jugador</Label>
-              <Input value={playerName} onChange={(e) => setPlayerName(e.target.value)} placeholder="Nombre..." className="glass-input h-9" />
-            </div>
-            <div>
-              <Label className="text-xs text-white/50 mb-1 block">Descripción</Label>
-              <Input value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="Opcional..." className="glass-input h-9" />
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-bold text-white/70 uppercase tracking-wider flex items-center gap-2">
+            <List className="w-4 h-4" />Agregar Evento
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div>
+            <Label className="text-xs text-white/50 mb-1 block">Jugador (opcional)</Label>
+            <Input value={playerName} onChange={(e) => setPlayerName(e.target.value)} placeholder="Nombre del jugador..." className="glass-input" />
+          </div>
+          <div>
+            <Label className="text-xs text-white/50 mb-2 block">Equipo Local</Label>
+            <div className="flex flex-wrap gap-1.5">
+              {(['goal', 'yellow_card', 'red_card', 'own_goal'] as EventType[]).map((type) => (
+                <Button key={type} size="sm" variant="ghost" className="h-9 gap-1 text-xs text-white/60 hover:bg-white/10 hover:text-white" disabled={isFinished} onClick={() => handleAdd(type, 'home')}>
+                  <span>{EVENT_ICONS[type]}</span>{EVENT_LABELS[type]}
+                </Button>
+              ))}
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-2">
-            <div><Label className="text-xs text-white/50 mb-1 block">Entra (cambio)</Label><Input value={subIn} onChange={(e) => setSubIn(e.target.value)} placeholder="Jugador que entra" className="glass-input h-9" /></div>
-            <div><Label className="text-xs text-white/50 mb-1 block">Sale (cambio)</Label><Input value={subOut} onChange={(e) => setSubOut(e.target.value)} placeholder="Jugador que sale" className="glass-input h-9" /></div>
+          <div>
+            <Label className="text-xs text-white/50 mb-2 block">Equipo Visitante</Label>
+            <div className="flex flex-wrap gap-1.5">
+              {(['goal', 'yellow_card', 'red_card', 'own_goal'] as EventType[]).map((type) => (
+                <Button key={type} size="sm" variant="ghost" className="h-9 gap-1 text-xs text-white/60 hover:bg-white/10 hover:text-white" disabled={isFinished} onClick={() => handleAdd(type, 'away')}>
+                  <span>{EVENT_ICONS[type]}</span>{EVENT_LABELS[type]}
+                </Button>
+              ))}
+            </div>
           </div>
         </CardContent>
       </Card>
 
       <Card className="glass-panel rounded-xl">
-        <CardHeader className="pb-2"><CardTitle className="text-sm font-bold text-white/70 uppercase tracking-wider">Registrar Evento</CardTitle></CardHeader>
-        <CardContent className="space-y-2">
-          <p className="text-xs text-white/40 font-medium uppercase tracking-wider">Goles</p>
-          <div className="grid grid-cols-2 gap-2">
-            {goalBtn('goal', 'home', `Gol ${match.homeTeam.shortName}`)}
-            {goalBtn('goal', 'away', `Gol ${match.awayTeam.shortName}`)}
-            {goalBtn('penalty_goal', 'home', `Penal ${match.homeTeam.shortName}`)}
-            {goalBtn('penalty_goal', 'away', `Penal ${match.awayTeam.shortName}`)}
-            {goalBtn('own_goal', 'home', `Autogol ${match.homeTeam.shortName}`)}
-            {goalBtn('own_goal', 'away', `Autogol ${match.awayTeam.shortName}`)}
-          </div>
-          <Separator className="bg-white/5" />
-          <p className="text-xs text-white/40 font-medium uppercase tracking-wider">Tarjetas</p>
-          <div className="grid grid-cols-4 gap-2">
-            {cardBtn('yellow_card', 'home')}{cardBtn('red_card', 'home')}
-            {cardBtn('yellow_card', 'away')}{cardBtn('red_card', 'away')}
-          </div>
-          <Separator className="bg-white/5" />
-          <p className="text-xs text-white/40 font-medium uppercase tracking-wider">Otros</p>
-          <div className="grid grid-cols-4 gap-2">
-            <Button variant="ghost" className="h-10 text-sm font-bold bg-white/5 text-white/60 border-white/10 hover:bg-white/10" onClick={() => add('substitution', 'home')} disabled={isFinished}>🔄 {match.homeTeam.shortName.slice(0, 5)}</Button>
-            <Button variant="ghost" className="h-10 text-sm font-bold bg-white/5 text-white/60 border-white/10 hover:bg-white/10" onClick={() => add('substitution', 'away')} disabled={isFinished}>🔄 {match.awayTeam.shortName.slice(0, 5)}</Button>
-            <Button variant="ghost" className="h-10 text-sm font-bold bg-purple-500/10 text-purple-400 border-purple-500/20 hover:bg-purple-500/20" onClick={() => add('var_review', 'home')} disabled={isFinished}>📺 VAR</Button>
-            <Button variant="ghost" className="h-10 text-sm font-bold bg-orange-500/10 text-orange-400 border-orange-500/20 hover:bg-orange-500/20" onClick={() => add('injury', 'home')} disabled={isFinished}>🩹 Lesión</Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="glass-panel rounded-xl">
-        <CardHeader className="pb-2"><CardTitle className="text-sm font-bold text-white/70 uppercase tracking-wider">Eventos ({match.events.length})</CardTitle></CardHeader>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-bold text-white/70 uppercase tracking-wider">Eventos ({match.events.length})</CardTitle>
+        </CardHeader>
         <CardContent>
           {match.events.length === 0 ? <p className="text-sm text-white/30 text-center py-4">Sin eventos</p> : (
             <div className="space-y-1.5 max-h-72 overflow-y-auto">
-              {match.events.map((ev) => {
-                const team = ev.team === 'home' ? match.homeTeam : match.awayTeam;
-                return (
-                  <div key={ev.id} className="flex items-center gap-3 py-2 px-3 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] transition-colors group">
-                    <span className="text-base">{EVENT_ICONS[ev.type]}</span>
-                    <div className="flex-1 min-w-0">
-                      <span className="text-sm font-semibold" style={{ color: team.color }}>{team.shortName}</span>
-                      <span className="text-sm text-white/50 ml-1.5">{EVENT_LABELS[ev.type]}</span>
-                      {ev.playerName && <span className="text-sm text-white/40 ml-1">• {ev.playerName}</span>}
-                      {ev.playerInName && <span className="text-sm text-green-400/60 ml-1">↑{ev.playerInName}</span>}
-                      {ev.playerOutName && <span className="text-sm text-red-400/60 ml-1">↓{ev.playerOutName}</span>}
-                    </div>
-                    <span className="text-xs font-mono text-white/25">{ev.minute}&apos;</span>
-                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 text-white/20 hover:text-red-400" onClick={() => removeEvent(ev.id)}><Trash2 className="w-3.5 h-3.5" /></Button>
-                  </div>
-                );
-              })}
+              {match.events.map((ev) => (
+                <div key={ev.id} className="flex items-center gap-2.5 py-2 px-3 rounded-lg bg-white/[0.03] group">
+                  <span className="text-base">{EVENT_ICONS[ev.type]}</span>
+                  <span className="text-xs font-bold text-white/60 w-8">{ev.minute}&apos;</span>
+                  <span className="text-xs font-semibold text-white/70 flex-1 truncate">
+                    {EVENT_LABELS[ev.type]} {ev.team === 'home' ? match.homeTeam.shortName : match.awayTeam.shortName}
+                    {ev.playerName ? ` — ${ev.playerName}` : ''}
+                  </span>
+                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 text-white/20 hover:text-red-400" onClick={() => removeEvent(ev.id)}><Trash2 className="w-3.5 h-3.5" /></Button>
+                </div>
+              ))}
             </div>
           )}
         </CardContent>
@@ -410,52 +390,182 @@ function PublicidadTab() {
   const activeAdIndex = useScoreboardStore((s) => s.activeAdIndex);
   const addAd = useScoreboardStore((s) => s.addAd);
   const removeAd = useScoreboardStore((s) => s.removeAd);
-  const updateAd = useScoreboardStore((s) => s.updateAd);
   const cycleAd = useScoreboardStore((s) => s.cycleAd);
   const [text, setText] = useState('');
-  const [imgUrl, setImgUrl] = useState('');
   const [dur, setDur] = useState('15');
+  const [mediaData, setMediaData] = useState('');
+  const [mediaType, setMediaType] = useState<'image' | 'video' | 'none'>('none');
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Size limits: 5MB for images, 15MB for videos
+    const maxSize = file.type.startsWith('video/') ? 15 * 1024 * 1024 : 5 * 1024 * 1024;
+    if (file.size > maxSize) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        setMediaData(reader.result);
+        setMediaType(file.type.startsWith('video/') ? 'video' : 'image');
+      }
+    };
+    reader.readAsDataURL(file);
+    // Reset input so the same file can be re-selected
+    e.target.value = '';
+  }, []);
 
   const handleAdd = () => {
     if (!text.trim()) return;
-    addAd({ id: genId(), text: text.trim(), imageUrl: imgUrl.trim(), duration: parseInt(dur) || 15, active: true });
-    setText(''); setImgUrl(''); setDur('15');
+    addAd({
+      id: genId(),
+      text: text.trim(),
+      mediaData,
+      mediaType,
+      duration: parseInt(dur) || 15,
+      active: true,
+    });
+    setText('');
+    setDur('15');
+    setMediaData('');
+    setMediaType('none');
+  };
+
+  const handleRemoveMedia = () => {
+    setMediaData('');
+    setMediaType('none');
+    if (fileRef.current) fileRef.current.value = '';
   };
 
   return (
     <div className="space-y-3">
       <Card className="glass-panel rounded-xl">
-        <CardHeader className="pb-2"><CardTitle className="text-sm font-bold text-white/70 uppercase tracking-wider flex items-center gap-2"><Megaphone className="w-4 h-4" />Nueva Publicidad</CardTitle></CardHeader>
-        <CardContent className="space-y-2">
-          <div><Label className="text-xs text-white/50 mb-1 block">Texto</Label><Input value={text} onChange={(e) => setText(e.target.value)} placeholder="Texto del patrocinador..." className="glass-input" /></div>
-          <div><Label className="text-xs text-white/50 mb-1 block">URL de imagen (opcional)</Label><Input value={imgUrl} onChange={(e) => setImgUrl(e.target.value)} placeholder="https://..." className="glass-input" /></div>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-bold text-white/70 uppercase tracking-wider flex items-center gap-2">
+            <Megaphone className="w-4 h-4" />Nueva Publicidad
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {/* File upload area */}
+          <div>
+            <Label className="text-xs text-white/50 mb-1.5 block">Imagen o Video (máx 5MB imagen / 15MB video)</Label>
+            <input ref={fileRef} type="file" accept="image/*,video/mp4,video/webm" className="hidden" onChange={handleFileSelect} />
+            {mediaData ? (
+              <div className="relative group rounded-xl overflow-hidden border border-white/10">
+                {mediaType === 'video' ? (
+                  <video src={mediaData} className="w-full h-32 object-cover rounded-xl" muted />
+                ) : (
+                  <img src={mediaData} alt="Preview" className="w-full h-32 object-cover rounded-xl" />
+                )}
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <Button size="sm" variant="ghost" className="text-white gap-1.5" onClick={handleRemoveMedia}>
+                    <X className="w-4 h-4" />Quitar
+                  </Button>
+                </div>
+                <div className="absolute top-2 left-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-black/60 text-white backdrop-blur-sm flex items-center gap-1">
+                    {mediaType === 'video' ? <Film className="w-3 h-3" /> : <ImagePlus className="w-3 h-3" />}
+                    {mediaType === 'video' ? 'Video' : 'Imagen'}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={() => fileRef.current?.click()}
+                className="w-full h-24 rounded-xl border-2 border-dashed border-white/15 flex flex-col items-center justify-center gap-1.5 hover:border-white/30 hover:bg-white/5 transition-colors cursor-pointer"
+              >
+                <Upload className="w-5 h-5 text-white/30" />
+                <span className="text-xs text-white/40">Arrastra o haz clic para subir imagen/video</span>
+                <span className="text-[10px] text-white/25">JPG, PNG, GIF, MP4, WebM</span>
+              </button>
+            )}
+          </div>
+
+          <div>
+            <Label className="text-xs text-white/50 mb-1 block">Nombre del patrocinador</Label>
+            <Input value={text} onChange={(e) => setText(e.target.value)} placeholder="Texto del patrocinador..." className="glass-input" />
+          </div>
+
           <div className="flex gap-2">
-            <div className="flex-1"><Label className="text-xs text-white/50 mb-1 block">Duración (seg)</Label><Input type="number" min={5} max={120} value={dur} onChange={(e) => setDur(e.target.value)} className="glass-input h-9" /></div>
-            <div className="flex items-end"><Button className="h-9 gap-1.5 text-sm" onClick={handleAdd}><Plus className="w-4 h-4" />Agregar</Button></div>
+            <div className="flex-1">
+              <Label className="text-xs text-white/50 mb-1 block">Duración en pantalla (seg)</Label>
+              <Input type="number" min={5} max={120} value={dur} onChange={(e) => setDur(e.target.value)} className="glass-input h-9" />
+            </div>
+            <div className="flex items-end">
+              <Button className="h-9 gap-1.5 text-sm" onClick={handleAdd} disabled={!text.trim()}>
+                <Plus className="w-4 h-4" />Agregar
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
 
+      {/* Ad cycling controls */}
       {ads.length > 0 && (
-        <div className="flex gap-2">
-          <Button variant="ghost" size="sm" className="text-xs text-white/50 hover:text-white" onClick={cycleAd}>⏭ Siguiente</Button>
-          <span className="text-xs text-white/30 self-center">Mostrando: {ads.length > 0 ? ads[activeAdIndex % ads.length]?.text : '—'}</span>
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" className="text-xs text-white/50 hover:text-white gap-1.5" onClick={cycleAd}>
+            ⏭ Siguiente
+          </Button>
+          <span className="text-xs text-white/30">
+            Mostrando: {ads[activeAdIndex % ads.length]?.text} ({ads[activeAdIndex % ads.length]?.duration}s)
+          </span>
+          <span className="text-[10px] text-white/20 ml-auto">
+            {ads.filter(a => a.mediaType !== 'none').length} con media • {ads.length} total
+          </span>
         </div>
       )}
 
+      {/* Ad list */}
       <Card className="glass-panel rounded-xl">
-        <CardHeader className="pb-2"><CardTitle className="text-sm font-bold text-white/70 uppercase tracking-wider">Publicidades ({ads.length})</CardTitle></CardHeader>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-bold text-white/70 uppercase tracking-wider">Publicidades ({ads.length})</CardTitle>
+        </CardHeader>
         <CardContent>
-          {ads.length === 0 ? <p className="text-sm text-white/30 text-center py-4">Sin publicidades</p> : (
-            <div className="space-y-2 max-h-64 overflow-y-auto">
+          {ads.length === 0 ? (
+            <p className="text-sm text-white/30 text-center py-6">Sin publicidades agregadas</p>
+          ) : (
+            <div className="space-y-2 max-h-72 overflow-y-auto">
               {ads.map((ad, i) => (
-                <div key={ad.id} className={`flex items-center gap-3 py-2 px-3 rounded-lg bg-white/[0.03] group ${i === activeAdIndex % ads.length ? 'ring-1 ring-blue-500/30' : ''}`}>
-                  {ad.imageUrl && <img src={ad.imageUrl} alt="" className="w-10 h-10 object-contain rounded" />}
+                <div
+                  key={ad.id}
+                  className={`flex items-center gap-3 py-2.5 px-3 rounded-lg bg-white/[0.03] group transition-all ${i === activeAdIndex % ads.length ? 'ring-1 ring-emerald-500/30 bg-emerald-500/5' : ''}`}
+                >
+                  {/* Thumbnail */}
+                  {ad.mediaType !== 'none' && ad.mediaData ? (
+                    <div className="w-12 h-12 rounded-lg overflow-hidden border border-white/10 shrink-0 flex items-center justify-center bg-black/20">
+                      {ad.mediaType === 'video' ? (
+                        <video src={ad.mediaData} className="w-full h-full object-cover" muted />
+                      ) : (
+                        <img src={ad.mediaData} alt="" className="w-full h-full object-cover" />
+                      )}
+                    </div>
+                  ) : (
+                    <div className="w-12 h-12 rounded-lg border border-dashed border-white/10 shrink-0 flex items-center justify-center bg-white/[0.02]">
+                      <span className="text-[9px] text-white/20 text-center leading-tight px-1">Sin<br/>media</span>
+                    </div>
+                  )}
+
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-white/80 truncate">{ad.text}</p>
-                    <p className="text-[10px] text-white/30">{ad.duration}s</p>
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-sm font-semibold text-white/80 truncate">{ad.text}</p>
+                      {i === activeAdIndex % ads.length && (
+                        <span className="text-[9px] font-bold text-emerald-400 bg-emerald-500/15 px-1.5 py-0.5 rounded-full shrink-0">EN PANTALLA</span>
+                      )}
+                    </div>
+                    <p className="text-[10px] text-white/30 mt-0.5">
+                      {ad.duration}s • {ad.mediaType === 'video' ? '📹 Video' : ad.mediaType === 'image' ? '🖼 Imagen' : '📝 Texto'}
+                    </p>
                   </div>
-                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 text-white/20 hover:text-red-400" onClick={() => removeAd(ad.id)}><Trash2 className="w-3.5 h-3.5" /></Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 text-white/20 hover:text-red-400 shrink-0"
+                    onClick={() => removeAd(ad.id)}
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </Button>
                 </div>
               ))}
             </div>
@@ -482,41 +592,70 @@ function SkinsTab() {
   const activeSkin = skins.find((s) => s.id === activeSkinId);
 
   const handleCreate = () => {
-    const skin: SkinData = { id: genId(), name: newName.trim() || 'Nuevo Skin', backgroundColor: '#0c1220', textColor: '#ffffff', scoreColor: '#ffffff', timerColor: '#ffffff', accentColor: '#10b981', panelBackground: 'rgba(255,255,255,0.03)', panelBorder: 'rgba(255,255,255,0.06)' };
-    addSkin(skin); setNewName(''); setCreating(false); setEditingId(skin.id); setEditData(skin);
+    const skin: SkinData = {
+      id: genId(), name: newName.trim() || 'Nuevo Skin',
+      backgroundColor: '#0c1220', textColor: '#ffffff', scoreColor: '#ffffff',
+      timerColor: '#ffffff', accentColor: '#10b981',
+      panelBackground: 'rgba(255,255,255,0.03)', panelBorder: 'rgba(255,255,255,0.06)',
+    };
+    addSkin(skin);
+    setNewName('');
+    setCreating(false);
+    setEditingId(skin.id);
+    setEditData(skin);
   };
 
   return (
     <div className="space-y-3">
+      {/* Active skin preview */}
       <Card className="glass-panel rounded-xl">
-        <CardHeader className="pb-2"><CardTitle className="text-sm font-bold text-white/70 uppercase tracking-wider flex items-center gap-2"><Palette className="w-4 h-4" />Skin Activo</CardTitle></CardHeader>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-bold text-white/70 uppercase tracking-wider flex items-center gap-2">
+            <Palette className="w-4 h-4" />Skin Activo
+          </CardTitle>
+        </CardHeader>
         <CardContent>
           {activeSkin && (
-            <div className="rounded-xl p-4 border" style={{ background: activeSkin.backgroundColor, borderColor: activeSkin.panelBorder }}>
+            <div
+              className="rounded-xl p-4 border transition-all duration-300"
+              style={{ background: activeSkin.backgroundColor, borderColor: activeSkin.panelBorder }}
+            >
               <div className="flex items-center justify-center gap-4">
                 <span className="text-3xl font-black" style={{ color: activeSkin.scoreColor }}>3</span>
-                <span className="text-xl text-white/20">-</span>
+                <span className="text-xl" style={{ color: `${activeSkin.textColor}20` }}>-</span>
                 <span className="text-3xl font-black" style={{ color: activeSkin.scoreColor }}>1</span>
               </div>
               <p className="text-center mt-1 text-sm font-mono" style={{ color: activeSkin.timerColor }}>12:00</p>
               <p className="text-center mt-1 text-xs" style={{ color: `${activeSkin.textColor}50` }}>{activeSkin.name}</p>
+              <div className="flex justify-center mt-2">
+                <span className="text-[10px] px-2 py-0.5 rounded-full font-bold" style={{ backgroundColor: `${activeSkin.accentColor}20`, color: activeSkin.accentColor }}>
+                  EN VIVO
+                </span>
+              </div>
             </div>
           )}
         </CardContent>
       </Card>
 
+      {/* Create new skin */}
       {!creating ? (
-        <Button variant="ghost" className="w-full h-10 border-dashed border-white/10 gap-2 text-white/40 hover:text-white/60 hover:border-white/20" onClick={() => setCreating(true)}><Plus className="w-4 h-4" />Crear skin</Button>
+        <Button variant="ghost" className="w-full h-10 border-dashed border-white/10 gap-2 text-white/40 hover:text-white/60 hover:border-white/20" onClick={() => setCreating(true)}>
+          <Plus className="w-4 h-4" />Crear skin
+        </Button>
       ) : (
         <Card className="glass-panel rounded-xl border-blue-500/30">
           <CardContent className="py-3 px-4 flex gap-2 items-end">
-            <div className="flex-1"><Label className="text-xs text-white/50 mb-1 block">Nombre</Label><Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Mi Skin" className="glass-input" autoFocus /></div>
+            <div className="flex-1">
+              <Label className="text-xs text-white/50 mb-1 block">Nombre</Label>
+              <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Mi Skin" className="glass-input" autoFocus />
+            </div>
             <Button size="sm" className="h-9" onClick={handleCreate}>Crear</Button>
             <Button size="sm" variant="ghost" className="h-9 text-white/40" onClick={() => { setCreating(false); setNewName(''); }}>X</Button>
           </CardContent>
         </Card>
       )}
 
+      {/* Skin list */}
       <div className="space-y-2">
         {skins.map((skin) => {
           const isActive = skin.id === activeSkinId;
@@ -534,23 +673,48 @@ function SkinsTab() {
                       <ColorPicker label="Timer" value={editData.timerColor || skin.timerColor} onChange={(v) => setEditData({ ...editData, timerColor: v })} />
                       <ColorPicker label="Acento" value={editData.accentColor || skin.accentColor} onChange={(v) => setEditData({ ...editData, accentColor: v })} />
                       <div className="flex items-end gap-1">
-                        <Button size="sm" className="h-10 flex-1 gap-1" onClick={() => { updateSkin(skin.id, editData); setEditingId(null); }}><Check className="w-3.5 h-3.5" />Guardar</Button>
+                        <Button size="sm" className="h-10 flex-1 gap-1" onClick={() => { updateSkin(skin.id, editData); setEditingId(null); }}>
+                          <Check className="w-3.5 h-3.5" />Guardar
+                        </Button>
                         <Button size="sm" variant="ghost" className="h-10 text-white/40" onClick={() => { setEditingId(null); }}>X</Button>
                       </div>
                     </div>
                   </div>
                 ) : (
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg shrink-0 border border-white/10 flex items-center justify-center text-xs font-bold" style={{ backgroundColor: skin.backgroundColor, color: skin.accentColor }}>Aa</div>
+                    <div
+                      className="w-10 h-10 rounded-lg shrink-0 border border-white/10 flex items-center justify-center text-xs font-bold transition-all duration-300"
+                      style={{ backgroundColor: skin.backgroundColor, color: skin.accentColor }}
+                    >
+                      Aa
+                    </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-white/80 truncate">{skin.name}</p>
-                      <div className="flex gap-1 mt-1">{[skin.backgroundColor, skin.scoreColor, skin.timerColor, skin.accentColor].map((c, i) => <div key={i} className="w-3 h-3 rounded-full" style={{ backgroundColor: c }} />)}</div>
+                      <div className="flex gap-1 mt-1">
+                        {[skin.backgroundColor, skin.scoreColor, skin.timerColor, skin.accentColor].map((c, i) => (
+                          <div key={i} className="w-3 h-3 rounded-full" style={{ backgroundColor: c }} />
+                        ))}
+                      </div>
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0">
-                      {!isActive && <Button size="sm" variant="ghost" className="h-8 text-xs gap-1 text-white/50 hover:text-white" onClick={() => setActiveSkin(skin.id)}><Check className="w-3 h-3" />Activar</Button>}
-                      {isActive && <span className="text-xs font-black tracking-wider text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-1 rounded-full">✓ ACTIVO</span>}
-                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-white/30 hover:text-white" onClick={() => { setEditingId(skin.id); setEditData({ ...skin }); }}><Settings className="w-3.5 h-3.5" /></Button>
-                      {skin.id !== 'default' && <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-white/20 hover:text-red-400" onClick={() => removeSkin(skin.id)}><Trash2 className="w-3.5 h-3.5" /></Button>}
+                      {!isActive && (
+                        <Button size="sm" variant="ghost" className="h-8 text-xs gap-1 text-white/50 hover:text-white" onClick={() => setActiveSkin(skin.id)}>
+                          <Check className="w-3 h-3" />Activar
+                        </Button>
+                      )}
+                      {isActive && (
+                        <span className="text-xs font-black tracking-wider text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-1 rounded-full">
+                          ✓ ACTIVO
+                        </span>
+                      )}
+                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-white/30 hover:text-white" onClick={() => { setEditingId(skin.id); setEditData({ ...skin }); }}>
+                        <Settings className="w-3.5 h-3.5" />
+                      </Button>
+                      {skin.id !== 'default' && (
+                        <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-white/20 hover:text-red-400" onClick={() => removeSkin(skin.id)}>
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      )}
                     </div>
                   </div>
                 )}
@@ -563,9 +727,56 @@ function SkinsTab() {
   );
 }
 
+// ── Display Preview Modal ─────────────────────────────────────────────────────
+
+function DisplayPreview({ open, onClose }: { open: boolean; onClose: () => void }) {
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex flex-col">
+      {/* Top bar */}
+      <div className="flex items-center justify-between px-4 py-2 bg-black/50 border-b border-white/10 shrink-0">
+        <div className="flex items-center gap-2">
+          <Eye className="w-4 h-4 text-emerald-400" />
+          <span className="text-xs font-semibold text-white/70">Vista Previa del Marcador — Tiempo Real</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant="ghost"
+            className="text-xs text-white/50 hover:text-white gap-1.5"
+            onClick={() => {
+              const el = document.querySelector('.preview-container');
+              if (el) {
+                if (!document.fullscreenElement) {
+                  el.requestFullscreen().catch(() => {});
+                } else {
+                  document.exitFullscreen();
+                }
+              }
+            }}
+          >
+            <Maximize2 className="w-3.5 h-3.5" />Pantalla Completa
+          </Button>
+          <Button size="sm" variant="ghost" className="text-xs text-white/50 hover:text-white gap-1.5" onClick={onClose}>
+            <X className="w-3.5 h-3.5" />Cerrar
+          </Button>
+        </div>
+      </div>
+
+      {/* Display content */}
+      <div className="flex-1 preview-container overflow-hidden">
+        <StadiumDisplay />
+      </div>
+    </div>
+  );
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 export function ControlPanel() {
+  const [showPreview, setShowPreview] = useState(false);
+
   return (
     <div className="control-mode min-h-screen">
       <div className="parallax-bg" />
@@ -573,13 +784,41 @@ export function ControlPanel() {
       <header className="sticky top-0 z-50 bg-[#0a1628]/80 backdrop-blur-xl border-b border-white/[0.06]">
         <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center"><span className="text-white font-black text-sm">PF</span></div>
-            <div><h1 className="text-base font-bold tracking-tight text-white">Profutbol</h1><p className="text-[10px] text-white/30 uppercase tracking-wider">Marcador para Canchas</p></div>
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center">
+              <span className="text-white font-black text-sm">PF</span>
+            </div>
+            <div>
+              <h1 className="text-base font-bold tracking-tight text-white">Profutbol</h1>
+              <p className="text-[10px] text-white/30 uppercase tracking-wider">Marcador para Canchas</p>
+            </div>
           </div>
-          <Button variant="ghost" size="sm" className="gap-1.5 text-xs text-white/40 hover:text-white" onClick={() => window.open('/marcador', '_blank')}><Monitor className="w-3.5 h-3.5" /><span className="hidden sm:inline">Abrir Marcador</span></Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-1.5 text-xs text-emerald-400/70 hover:text-emerald-400 hover:bg-emerald-500/10 border border-emerald-500/20"
+              onClick={() => setShowPreview(true)}
+            >
+              <Eye className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Vista Previa</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-1.5 text-xs text-white/40 hover:text-white"
+              onClick={() => {
+                const base = window.location.pathname.includes('/Profutbol') ? '/Profutbol' : '';
+                window.open(`${base}/marcador`, '_blank');
+              }}
+            >
+              <Monitor className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Abrir Marcador</span>
+            </Button>
+          </div>
         </div>
       </header>
-      <main className="max-w-4xl mx-auto px-4 py-6 relative z-10">
+
+      <main className="max-w-4xl mx-auto px-4 py-6 pb-20 relative z-10">
         <Tabs defaultValue="marcador" className="w-full">
           <TabsList className="w-full mb-4 bg-white/[0.05] p-1 h-auto border border-white/[0.06] rounded-xl">
             <TabsTrigger value="equipos" className="flex-1 gap-1.5 py-2.5 text-xs text-white/40 data-[state=active]:bg-white/[0.08] data-[state=active]:text-white rounded-lg"><Settings className="w-3.5 h-3.5" />Equipos</TabsTrigger>
@@ -595,12 +834,16 @@ export function ControlPanel() {
           <TabsContent value="skins"><SkinsTab /></TabsContent>
         </Tabs>
       </main>
+
       <footer className="fixed bottom-0 left-0 right-0 bg-[#0a1628]/80 backdrop-blur-xl border-t border-white/[0.06] z-50">
         <div className="max-w-4xl mx-auto px-4 py-2 flex items-center justify-between">
           <p className="text-[10px] text-white/20">Profutbol v1.0 — Marcador para Canchas</p>
           <p className="text-[10px] text-white/20">Fútbol 5 / 7 / 8 / 11</p>
         </div>
       </footer>
+
+      {/* Live Preview Overlay */}
+      <DisplayPreview open={showPreview} onClose={() => setShowPreview(false)} />
     </div>
   );
 }

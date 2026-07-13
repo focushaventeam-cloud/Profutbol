@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  title     String
+  content   String?
+  published Boolean  @default(false)
+  authorId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Match {
+  id            String   @id @default(cuid())
+  homeTeamId    String
+  awayTeamId    String
+  homeTeamName  String
+  awayTeamName  String
+  homeTeamShort String
+  awayTeamShort String
+  homeLogo      String
+  awayLogo      String
+  homeColor     String
+  awayColor     String
+  homeScore     Int      @default(0)
+  awayScore     Int      @default(0)
+  status        String   @default("scheduled")
+  minute        Int      @default(0)
+  period        String   @default("first_half")
+  addedTime     Int      @default(0)
+  startTime     String
+  league        String
+  stadium       String
+  events        String   @default("[]")
+  homeStats     String   @default("{}")
+  awayStats     String   @default("{}")
+  homeLineup    String   @default("[]")
+  awayLineup    String   @default("[]")
+  homeFormation String   @default("4-3-3")
+  awayFormation String   @default("4-3-3")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model FavoriteTeam {
+  id        String   @id @default(cuid())
+  teamId    String
+  teamName  String
+  createdAt DateTime @default(now())
+}
+
+model UserSettings {
+  id           String @id @default(cuid())
+  darkTheme    Boolean @default(true)
+  notifications Boolean @default(false)
+  sounds       Boolean @default(true)
+  animations   Boolean @default(true)
+  updatedAt    DateTime @updatedAt
+}

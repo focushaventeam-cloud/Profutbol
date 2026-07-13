@@ -1,0 +1,26 @@
+# Cloudflare Pages deployment configuration
+# Docs: https://developers.cloudflare.com/pages/framework-guides/nextjs/
+
+name = "profutbol"
+compatibility_date = "2025-01-01"
+
+# For Cloudflare Pages with Next.js
+# Uses @cloudflare/next-on-pages for Edge Runtime
+# API routes run on Cloudflare Workers
+
+[site]
+bucket = ".vercel/output/static"
+
+[build]
+command = "npx @cloudflare/next-on-pages@1"
+watch_dirs = ["src"]
+
+# D1 Database binding (uncomment when D1 is created)
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "profutbol-db"
+# database_id = "your-database-id"
+
+# Environment variables
+[vars]
+NODE_ENV = "production"

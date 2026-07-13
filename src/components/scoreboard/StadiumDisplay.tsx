@@ -1,8 +1,9 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import { useScoreboardStore } from '@/stores/scoreboardStore';
-import { PERIOD_LABELS, EVENT_ICONS, EVENT_LABELS, DEFAULT_SKIN } from '@/types';
-import type { MatchEvent } from '@/types';
+import { PERIOD_LABELS, EVENT_ICONS, DEFAULT_SKIN } from '@/types';
+import type { MatchEvent, AdData, SkinData } from '@/types';
 
 function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60);
@@ -10,50 +11,60 @@ function formatTime(seconds: number): string {
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
-// Ad banner component — shows current ad or placeholder
-function AdBanner({ ad, skin }: { ad?: { imageUrl?: string; text?: string; link?: string } | null; skin: typeof DEFAULT_SKIN }) {
-  if (ad?.imageUrl) {
+// Ad banner component — shows current ad with auto-cycling support (image + video)
+function AdBanner({ ads, activeAdIndex, skin }: { ads: AdData[]; activeAdIndex: number; skin: SkinData }) {
+  const currentAd = ads.length > 0 ? ads[activeAdIndex % ads.length] : null;
+
+  if (!currentAd) {
     return (
       <div
-        className="w-full max-w-5xl mx-auto rounded-xl overflow-hidden h-14 md:h-16 flex items-center justify-center"
-        style={{ border: `1px solid ${skin.panelBorder}` }}
+        className="w-full max-w-5xl mx-auto h-14 md:h-16 rounded-xl flex items-center justify-center"
+        style={{ border: `1px dashed ${skin.textColor}20`, background: `${skin.textColor}05` }}
       >
-        {ad.link ? (
-          <a href={ad.link} target="_blank" rel="noopener noreferrer" className="block w-full h-full">
-            <img
-              src={ad.imageUrl}
-              alt={ad.text || 'Patrocinador'}
-              className="w-full h-full object-cover"
-            />
-          </a>
-        ) : (
-          <img
-            src={ad.imageUrl}
-            alt={ad.text || 'Patrocinador'}
-            className="w-full h-full object-cover"
-          />
-        )}
+        <span
+          className="text-[10px] md:text-xs uppercase tracking-[0.25em] font-semibold"
+          style={{ color: `${skin.textColor}25` }}
+        >
+          Espacio Publicitario
+        </span>
       </div>
     );
   }
 
   return (
     <div
-      className="ad-space w-full max-w-5xl mx-auto h-12 md:h-14 rounded-xl"
-      style={{ borderColor: `${skin.textColor}15`, background: `${skin.textColor}05` }}
+      className="w-full max-w-5xl mx-auto rounded-xl overflow-hidden h-14 md:h-16 flex items-center justify-center relative"
+      style={{ border: `1px solid ${skin.panelBorder}`, background: skin.panelBackground }}
     >
-      <span
-        className="text-[10px] md:text-xs uppercase tracking-[0.25em] font-semibold"
-        style={{ color: `${skin.textColor}20` }}
-      >
-        Patrocinador Oficial
-      </span>
+      {currentAd.mediaType === 'video' && currentAd.mediaData ? (
+        <video
+          src={currentAd.mediaData}
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="w-full h-full object-cover"
+        />
+      ) : currentAd.mediaType === 'image' && currentAd.mediaData ? (
+        <img
+          src={currentAd.mediaData}
+          alt={currentAd.text || 'Patrocinador'}
+          className="w-full h-full object-cover"
+        />
+      ) : (
+        <span
+          className="text-sm md:text-base font-bold uppercase tracking-widest text-shadow-sm"
+          style={{ color: `${skin.textColor}60` }}
+        >
+          {currentAd.text}
+        </span>
+      )}
     </div>
   );
 }
 
 // Event pill for the timeline
-function EventPill({ ev, homeTeam, awayTeam, skin }: { ev: MatchEvent; homeTeam: typeof DEFAULT_SKIN extends never ? never : { shortName: string; color: string }; awayTeam: { shortName: string; color: string }; skin: typeof DEFAULT_SKIN }) {
+function EventPill({ ev, homeTeam, awayTeam, skin }: { ev: MatchEvent; homeTeam: { shortName: string; color: string }; awayTeam: { shortName: string; color: string }; skin: SkinData }) {
   const team = ev.team === 'home' ? homeTeam : awayTeam;
   return (
     <div
@@ -86,10 +97,11 @@ export function StadiumDisplay() {
   const match = useScoreboardStore((s) => s.match);
   const skins = useScoreboardStore((s) => s.skins);
   const activeSkinId = useScoreboardStore((s) => s.activeSkinId);
-  const skin = skins.find((sk) => sk.id === activeSkinId) || DEFAULT_SKIN;
-
   const ads = useScoreboardStore((s) => s.ads);
   const activeAdIndex = useScoreboardStore((s) => s.activeAdIndex);
+  const cycleAd = useScoreboardStore((s) => s.cycleAd);
+
+  const skin = skins.find((sk) => sk.id === activeSkinId) || DEFAULT_SKIN;
   const currentAd = ads.length > 0 ? ads[activeAdIndex % ads.length] : null;
 
   const {
@@ -121,6 +133,19 @@ export function StadiumDisplay() {
   const awayYellows = events.filter((e) => e.type === 'yellow_card' && e.team === 'away').length;
   const awayReds = events.filter((e) => e.type === 'red_card' && e.team === 'away').length;
 
+  // Auto-cycle ads
+  const adTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (adTimerRef.current) clearInterval(adTimerRef.current);
+    if (ads.length > 1 && currentAd) {
+      adTimerRef.current = setInterval(() => {
+        cycleAd();
+      }, (currentAd.duration || 15) * 1000);
+    }
+    return () => { if (adTimerRef.current) clearInterval(adTimerRef.current); };
+  }, [ads, activeAdIndex, currentAd, cycleAd]);
+
   // Format display helpers
   const formatLabel = format.replace('futbol', 'Fútbol ');
 
@@ -135,7 +160,7 @@ export function StadiumDisplay() {
 
       {/* ── Top Ad Banner ──────────────────────────────────────────────────── */}
       <div className="relative z-10 w-full px-6 md:px-10 pt-4">
-        <AdBanner ad={currentAd} skin={skin} />
+        <AdBanner ads={ads} activeAdIndex={activeAdIndex} skin={skin} />
       </div>
 
       {/* ── Competition Header ─────────────────────────────────────────────── */}
@@ -437,9 +462,13 @@ export function StadiumDisplay() {
         )}
       </div>
 
-      {/* ── Bottom Ad Banner ─────────────────────────────────────────────── */}
+      {/* ── Bottom Ad Banner (second ad if available) ─────────────────────── */}
       <div className="relative z-10 w-full px-6 md:px-10 pb-2">
-        <AdBanner ad={ads.length > 1 ? ads[(activeAdIndex + 1) % ads.length] : null} skin={skin} />
+        <AdBanner
+          ads={ads}
+          activeAdIndex={ads.length > 1 ? (activeAdIndex + 1) % ads.length : activeAdIndex}
+          skin={skin}
+        />
       </div>
 
       {/* ── Bottom Branding ──────────────────────────────────────────────── */}

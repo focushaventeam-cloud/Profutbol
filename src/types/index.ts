@@ -64,7 +64,8 @@ export interface MatchState {
 export interface AdData {
   id: string;
   text: string;
-  imageUrl: string;
+  mediaData: string; // base64 data URL (image or video)
+  mediaType: 'image' | 'video' | 'none';
   duration: number; // seconds to show each ad
   active: boolean;
 }
