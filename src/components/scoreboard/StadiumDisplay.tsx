@@ -439,7 +439,7 @@ export function StadiumDisplay() {
 
       {/* ── Bottom Ad Banner ─────────────────────────────────────────────── */}
       <div className="relative z-10 w-full px-6 md:px-10 pb-2">
-        <AdBanner ad={storeAds.length > 1 ? storeAds[1] : null} skin={skin} />
+        <AdBanner ad={ads.length > 1 ? ads[(activeAdIndex + 1) % ads.length] : null} skin={skin} />
       </div>
 
       {/* ── Bottom Branding ──────────────────────────────────────────────── */}
