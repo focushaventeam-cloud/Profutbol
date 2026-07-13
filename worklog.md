@@ -296,4 +296,30 @@ Stage Summary:
 - 14/14 escudos are now verified correct official team badges
 - All stored locally in `public/escudos/` as transparent PNG files
 - Sources: football-logos.cc (11), footylogos CDN (2 upgraded), Wikimedia Commons (2 original for Rayo Zuliano and Inter de Barinas)
-- Resolution: 11 teams at 1500x1500, 1 at 1080x1080 (La Guaira), 1 at 2088x3000 (Rayo Zuliano), 1 at 280x356 (Inter de Barinas - new team, limited availability)
+- Resolution: 11 teams at 1500x1500, 1 at 1080x1080 (La Guaira), 1 at 2088x3000 (Rayo Zuliano), 1 at 280x356 (Inter de Barinas - new team, limited availability)---
+Task ID: 10
+Agent: Main Agent
+Task: Simplificar para canchas de alquiler — quitar liga, agregar logo upload + skins activables
+
+Work Log:
+- Reevaluación completa: proyecto cambió de estadio profesional a canchas de alquiler (fútbol 5/7/8/11)
+- Eliminados: liga-futve.ts, team-logos.ts, LigaTeamSelector.tsx, LineupControl.tsx, 14 escudos PNG
+- Tipos simplificados: sin Player, Formation, SkinData complejo, AdData
+- Team ahora tiene campo `logo: string` para base64 data URL
+- SkinData simplificado: 7 campos de color (backgroundColor, textColor, scoreColor, timerColor, accentColor, panelBackground, panelBorder)
+- Store: agregado setTeamLogo, skins CRUD con broadcast
+- ControlPanel 4 tabs:
+  1. Equipos: nombre, abreviatura, color principal/secundario, upload de logo (base64, max 2MB)
+  2. Marcador: config rápida (cancha/tipo/duración), score display, timer, controles
+  3. Eventos: goles y tarjetas (amarilla/roja) por equipo
+  4. Skins: crear con nombre, editar 5 colores, activar/desactivar, eliminar, preview
+- StadiumDisplay: usa skin activo para todos los colores, muestra logo si está subido
+- Lint limpio, servidor compila OK, rutas / y /marcador responden 200
+
+Stage Summary:
+- Proyecto completamente reorientado a canchas de alquiler
+- Sin información de ligas venezolanas, sin alineaciones, sin formaciones
+- Upload de logos funciona (base64 en estado del store, sincroniza al display)
+- Sistema de skins funcional: crear, editar colores, activar (solo el activo se aplica al display)
+- Commits: 127e4c9 (reestructura inicial), 6a908d5 (equipos + skins)
+- Push a GitHub completado en ambos commits
