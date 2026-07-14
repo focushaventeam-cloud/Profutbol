@@ -17,10 +17,11 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import {
   Play, Pause, RotateCcw, Plus, Minus, Trash2, Monitor,
   Trophy, Settings, List, Palette, Upload, X, Check, ImagePlus, Megaphone,
-  Eye, Maximize2, Film, MonitorSmartphone,
+  Eye, Maximize2, Film, MonitorSmartphone, Smartphone,
 } from 'lucide-react';
 import { StadiumDisplay } from '@/components/scoreboard/StadiumDisplay';
 import { ScreensTab } from '@/components/control/ScreensTab';
+import { RemoteControlTab } from '@/components/control/RemoteControlTab';
 
 const genId = () => `id-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
@@ -840,6 +841,7 @@ export function ControlPanel({ activeScreenId, onSelectScreen, wsConnected, wsSt
         <Tabs defaultValue="pantallas" className="w-full">
           <TabsList className="w-full mb-4 bg-white/[0.05] p-1 h-auto border border-white/[0.06] rounded-xl">
             <TabsTrigger value="pantallas" className="flex-1 gap-1.5 py-2.5 text-xs text-white/40 data-[state=active]:bg-white/[0.08] data-[state=active]:text-white rounded-lg"><MonitorSmartphone className="w-3.5 h-3.5" />Pantallas</TabsTrigger>
+            <TabsTrigger value="remoto" className="flex-1 gap-1.5 py-2.5 text-xs text-white/40 data-[state=active]:bg-white/[0.08] data-[state=active]:text-white rounded-lg"><Smartphone className="w-3.5 h-3.5" />Remoto</TabsTrigger>
             <TabsTrigger value="equipos" className="flex-1 gap-1.5 py-2.5 text-xs text-white/40 data-[state=active]:bg-white/[0.08] data-[state=active]:text-white rounded-lg"><Settings className="w-3.5 h-3.5" />Equipos</TabsTrigger>
             <TabsTrigger value="marcador" className="flex-1 gap-1.5 py-2.5 text-xs text-white/40 data-[state=active]:bg-white/[0.08] data-[state=active]:text-white rounded-lg"><Trophy className="w-3.5 h-3.5" />Marcador</TabsTrigger>
             <TabsTrigger value="eventos" className="flex-1 gap-1.5 py-2.5 text-xs text-white/40 data-[state=active]:bg-white/[0.08] data-[state=active]:text-white rounded-lg"><List className="w-3.5 h-3.5" />Eventos</TabsTrigger>
@@ -847,6 +849,7 @@ export function ControlPanel({ activeScreenId, onSelectScreen, wsConnected, wsSt
             <TabsTrigger value="skins" className="flex-1 gap-1.5 py-2.5 text-xs text-white/40 data-[state=active]:bg-white/[0.08] data-[state=active]:text-white rounded-lg"><Palette className="w-3.5 h-3.5" />Skins</TabsTrigger>
           </TabsList>
           <TabsContent value="pantallas"><ScreensTab activeScreenId={activeScreenId} onSelectScreen={onSelectScreen} wsState={wsState} wsSendAction={wsSendAction} /></TabsContent>
+          <TabsContent value="remoto"><RemoteControlTab activeScreenId={activeScreenId} onSelectScreen={onSelectScreen} wsState={wsState} wsSendAction={wsSendAction} wsConnected={wsConnected} /></TabsContent>
           <TabsContent value="equipos"><EquiposTab /></TabsContent>
           <TabsContent value="marcador"><ScoreTab /></TabsContent>
           <TabsContent value="eventos"><EventsTab /></TabsContent>
