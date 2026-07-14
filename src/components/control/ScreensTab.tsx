@@ -271,7 +271,6 @@ function ScreenCard({
   onDelete,
   onRename,
   onOpenDisplay,
-  onOpenRemote,
   onSelect,
   isSelected,
   connected,
@@ -280,7 +279,6 @@ function ScreenCard({
   onDelete: () => void;
   onRename: (name: string) => void;
   onOpenDisplay: () => void;
-  onOpenRemote: () => void;
   onSelect: () => void;
   isSelected: boolean;
   connected: boolean;
@@ -290,7 +288,7 @@ function ScreenCard({
   const [editName, setEditName] = useState(screen.name);
 
   const qrUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}${window.location.pathname}control-remoto?screen=${screen.id}`
+    ? `${window.location.origin}${window.location.pathname}?screen=${screen.id}`
     : '';
 
   return (
@@ -423,7 +421,7 @@ function ScreenCard({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <QrCode className="w-5 h-5 text-violet-400" />
-              Control Remoto — {screen.name}
+              Control por QR — {screen.name}
             </DialogTitle>
           </DialogHeader>
           <div className="flex flex-col items-center gap-4 py-4">
@@ -438,10 +436,10 @@ function ScreenCard({
               />
             </div>
             <p className="text-xs text-zinc-400 text-center">
-              Escanea este codigo con tu celular para controlar esta pantalla desde tu telefono
+              Escanea este codigo con tu celular para abrir el panel de control y controlar esta pantalla
             </p>
             <div className="w-full bg-white/5 rounded-lg p-3">
-              <p className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">URL de Control Remoto</p>
+              <p className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">URL del Panel de Control</p>
               <p className="text-xs text-zinc-300 font-mono break-all">{qrUrl}</p>
             </div>
           </div>
@@ -567,7 +565,6 @@ export function ScreensTab({
               onDelete={() => deleteScreen(screen.id)}
               onRename={(name) => renameScreen(screen.id, name)}
               onOpenDisplay={() => handleOpenDisplay(screen.id)}
-              onOpenRemote={() => {}}
               onSelect={() => onSelectScreen(screen.id)}
               isSelected={screen.id === activeScreenId}
               connected={connected}

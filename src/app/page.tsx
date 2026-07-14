@@ -1,15 +1,26 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useScoreboardStore, enableControlBroadcasting, disableControlBroadcasting } from '@/stores/scoreboardStore';
 import { ControlPanel } from '@/components/control/ControlPanel';
 import { useSocket, useScreens, useScreenSubscription } from '@/hooks/useSocket';
 
 function ControlWindow() {
+  const searchParams = useSearchParams();
+  const qrScreenId = searchParams.get('screen');
+
   // ── Multi-Screen WebSocket State ──────────────────────────────────────────
   const [activeScreenId, setActiveScreenId] = useState<string | null>(null);
   const { connected: wsConnected } = useSocket();
   const { state: wsState, sendAction, syncState } = useScreenSubscription(activeScreenId);
+
+  // Auto-select screen from QR code parameter
+  useEffect(() => {
+    if (qrScreenId && !activeScreenId) {
+      queueMicrotask(() => setActiveScreenId(qrScreenId));
+    }
+  }, [qrScreenId, activeScreenId]);
 
   // Flag to prevent echo loop between local store and WebSocket
   const syncingFromServer = useRef(false);
@@ -120,5 +131,9 @@ function ControlWindow() {
 }
 
 export default function Home() {
-  return <ControlWindow />;
+  return (
+    <Suspense>
+      <ControlWindow />
+    </Suspense>
+  );
 }
