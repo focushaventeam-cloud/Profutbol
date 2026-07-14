@@ -417,3 +417,31 @@ Stage Summary:
 - Backward compatible: BroadcastChannel still works for local same-browser preview
 - Files created: useSocket.ts, ScreensTab.tsx, remote-control service, control-remoto page
 - Files modified: ControlPanel.tsx, page.tsx, marcador/page.tsx
+
+---
+Task ID: 12
+Agent: Main Agent
+Task: Move remote control into the panel and make display page purely passive
+
+Work Log:
+- User clarified: remote control must be IN the control panel (not a separate page), and the display screen must not be touchable after deployment
+- Rewrote ScreensTab.tsx to include InlineRemoteControl component:
+  - When a screen is selected, full remote controls appear at the top of the Pantallas tab
+  - Shows: live scoreboard preview, timer controls (INICIAR/PAUSAR/REINICIAR), score +/- GOL for each team, AMARILLA/ROJA card buttons, event list
+  - Uses wsSendAction to send commands directly to the WebSocket server
+  - Animated entry with fade-in/slide-in
+- Made /marcador page purely passive:
+  - Removed all buttons (fullscreen, connection indicator)
+  - Added cursor:none to hide the mouse pointer
+  - No interactive elements at all - just the StadiumDisplay rendering
+  - Display pages are meant to be deployed on TVs/monitors with no interaction
+- Updated ControlPanel props to pass wsState and wsSendAction through to ScreensTab
+- Updated page.tsx to pass the additional props
+- ESLint passes clean, all routes verified serving correctly
+
+Stage Summary:
+- Control panel is now the single point of control - all remote control is embedded in the Pantallas tab
+- Display screens are purely visual - no buttons, no cursor, no interaction possible after deployment
+- Flow: Create screen → Select it → Control directly from Pantallas tab → Deploy display to TV (no interaction)
+- QR code still available for mobile phone access to /control-remoto
+- The /control-remoto page still exists for phone-based control via QR scan

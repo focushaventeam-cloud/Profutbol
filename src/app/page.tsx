@@ -113,6 +113,8 @@ function ControlWindow() {
       activeScreenId={activeScreenId}
       onSelectScreen={setActiveScreenId}
       wsConnected={wsConnected}
+      wsState={wsState}
+      wsSendAction={sendAction}
     />
   );
 }

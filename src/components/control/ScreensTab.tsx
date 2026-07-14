@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useScreens, ScreenListItem } from '@/hooks/useSocket';
+import { useScreens, ScreenListItem, ScreenState } from '@/hooks/useSocket';
 import { QRCodeSVG } from 'qrcode.react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,8 +11,9 @@ import {
 } from '@/components/ui/dialog';
 import {
   Monitor, Plus, Trash2, QrCode, Wifi, WifiOff,
-  Smartphone, Tv, Edit2, Check, X,
+  Smartphone, Tv, Edit2, Check, X, Play, Pause, RotateCcw,
 } from 'lucide-react';
+import { PERIOD_LABELS, STATUS_LABELS, EVENT_ICONS, EVENT_LABELS } from '@/types';
 
 function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60);
@@ -20,19 +21,250 @@ function formatTime(seconds: number): string {
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
-const STATUS_LABELS: Record<string, string> = {
-  waiting: 'Sin Iniciar',
-  live: 'En Vivo',
-  halftime: 'Medio Tiempo',
-  finished: 'Finalizado',
-};
-
 const STATUS_COLORS: Record<string, string> = {
   waiting: 'text-zinc-400',
   live: 'text-emerald-400',
   halftime: 'text-yellow-400',
   finished: 'text-red-400',
 };
+
+// ── Inline Remote Control Panel (shown when a screen is selected) ──────────
+
+function InlineRemoteControl({
+  state,
+  sendAction,
+}: {
+  state: ScreenState;
+  sendAction: (action: Record<string, unknown>) => void;
+}) {
+  const { match, isTimerRunning } = state;
+
+  const homeYellows = match.events.filter(e => e.type === 'yellow_card' && e.team === 'home').length;
+  const homeReds = match.events.filter(e => e.type === 'red_card' && e.team === 'home').length;
+  const awayYellows = match.events.filter(e => e.type === 'yellow_card' && e.team === 'away').length;
+  const awayReds = match.events.filter(e => e.type === 'red_card' && e.team === 'away').length;
+
+  return (
+    <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+      {/* Active Screen Header */}
+      <div className="flex items-center gap-3 bg-violet-500/10 border border-violet-500/20 rounded-xl px-4 py-3">
+        <div className="w-8 h-8 rounded-lg bg-violet-500/20 flex items-center justify-center">
+          <Smartphone className="w-4 h-4 text-violet-400" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-bold text-white">{match.field}</p>
+          <p className="text-[10px] text-violet-300 uppercase tracking-wider">
+            {match.format.replace('futbol', 'Futbol ')} · {match.halfDuration}min
+          </p>
+        </div>
+        <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${
+          match.status === 'live' ? 'bg-emerald-500/20 text-emerald-400' :
+          match.status === 'finished' ? 'bg-red-500/20 text-red-400' :
+          match.status === 'halftime' ? 'bg-yellow-500/20 text-yellow-400' :
+          'bg-white/5 text-zinc-400'
+        }`}>
+          {STATUS_LABELS[match.status]}
+        </span>
+      </div>
+
+      {/* Scoreboard */}
+      <div className="bg-white/[0.03] border border-white/5 rounded-2xl p-5">
+        <div className="flex items-center justify-between">
+          {/* Home Team */}
+          <div className="flex-1 text-center">
+            <div
+              className="w-14 h-14 rounded-xl mx-auto mb-2 flex items-center justify-center text-lg font-black"
+              style={{
+                backgroundColor: `${match.homeTeam.color}20`,
+                border: `2px solid ${match.homeTeam.color}40`,
+                color: match.homeTeam.color,
+              }}
+            >
+              {match.homeTeam.shortName.slice(0, 3)}
+            </div>
+            <p className="text-xs font-bold truncate mb-1" style={{ color: match.homeTeam.color }}>
+              {match.homeTeam.shortName}
+            </p>
+            <div className="flex gap-0.5 justify-center min-h-[14px]">
+              {Array.from({ length: homeYellows }).map((_, i) => (
+                <span key={`hy-${i}`} className="inline-block w-3 h-4 rounded-sm bg-yellow-400" />
+              ))}
+              {Array.from({ length: homeReds }).map((_, i) => (
+                <span key={`hr-${i}`} className="inline-block w-3 h-4 rounded-sm bg-red-500" />
+              ))}
+            </div>
+          </div>
+
+          {/* Score + Timer */}
+          <div className="flex flex-col items-center px-6">
+            <div className="flex items-baseline gap-4">
+              <span className="text-5xl font-black text-white tabular-nums">{match.homeScore}</span>
+              <span className="text-xl font-light text-zinc-600">-</span>
+              <span className="text-5xl font-black text-white tabular-nums">{match.awayScore}</span>
+            </div>
+            <div className="mt-2 text-center">
+              <span className={`text-2xl font-mono font-bold tabular-nums ${isTimerRunning ? '' : 'opacity-40'}`}>
+                {formatTime(match.currentTime)}
+              </span>
+              <p className="text-[10px] text-zinc-600 uppercase tracking-wider mt-0.5">
+                {PERIOD_LABELS[match.period]}
+              </p>
+            </div>
+          </div>
+
+          {/* Away Team */}
+          <div className="flex-1 text-center">
+            <div
+              className="w-14 h-14 rounded-xl mx-auto mb-2 flex items-center justify-center text-lg font-black"
+              style={{
+                backgroundColor: `${match.awayTeam.color}20`,
+                border: `2px solid ${match.awayTeam.color}40`,
+                color: match.awayTeam.color,
+              }}
+            >
+              {match.awayTeam.shortName.slice(0, 3)}
+            </div>
+            <p className="text-xs font-bold truncate mb-1" style={{ color: match.awayTeam.color }}>
+              {match.awayTeam.shortName}
+            </p>
+            <div className="flex gap-0.5 justify-center min-h-[14px]">
+              {Array.from({ length: awayYellows }).map((_, i) => (
+                <span key={`ay-${i}`} className="inline-block w-3 h-4 rounded-sm bg-yellow-400" />
+              ))}
+              {Array.from({ length: awayReds }).map((_, i) => (
+                <span key={`ar-${i}`} className="inline-block w-3 h-4 rounded-sm bg-red-500" />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Timer Controls */}
+      <div className="bg-white/[0.03] border border-white/5 rounded-xl p-4">
+        <div className="flex items-center gap-2">
+          {isTimerRunning ? (
+            <Button
+              className="flex-1 h-12 bg-yellow-600 hover:bg-yellow-500 text-white font-bold text-sm rounded-xl gap-2"
+              onClick={() => sendAction({ type: 'pause_timer' })}
+            >
+              <Pause className="w-4 h-4" /> PAUSAR
+            </Button>
+          ) : (
+            <Button
+              className="flex-1 h-12 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm rounded-xl gap-2"
+              onClick={() => sendAction({ type: 'start_timer' })}
+            >
+              <Play className="w-4 h-4" /> INICIAR
+            </Button>
+          )}
+          <Button
+            className="h-12 px-5 bg-white/5 hover:bg-white/10 text-zinc-400 border border-white/10 rounded-xl"
+            onClick={() => sendAction({ type: 'reset_timer' })}
+            title="Reiniciar"
+          >
+            <RotateCcw className="w-5 h-5" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Score + Cards Controls */}
+      <div className="grid grid-cols-2 gap-4">
+        {/* Home Controls */}
+        <div className="bg-white/[0.03] border border-white/5 rounded-xl p-4 space-y-3">
+          <p className="text-xs font-bold uppercase tracking-wider text-center truncate" style={{ color: match.homeTeam.color }}>
+            {match.homeTeam.shortName}
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              className="flex-1 h-11 bg-emerald-600/80 hover:bg-emerald-500 text-white font-bold text-sm rounded-xl"
+              onClick={() => sendAction({ type: 'goal', team: 'home' })}
+            >
+              + GOL
+            </Button>
+            <Button
+              className="h-11 w-11 bg-white/5 hover:bg-white/10 text-zinc-400 border border-white/10 rounded-xl text-lg font-bold"
+              onClick={() => sendAction({ type: 'minus_goal', team: 'home' })}
+            >
+              -
+            </Button>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              className="flex-1 h-10 bg-yellow-500/80 hover:bg-yellow-400 text-zinc-900 font-bold text-xs rounded-xl"
+              onClick={() => sendAction({ type: 'yellow_card', team: 'home', playerName: '' })}
+            >
+              AMARILLA
+            </Button>
+            <Button
+              className="flex-1 h-10 bg-red-600/80 hover:bg-red-500 text-white font-bold text-xs rounded-xl"
+              onClick={() => sendAction({ type: 'red_card', team: 'home', playerName: '' })}
+            >
+              ROJA
+            </Button>
+          </div>
+        </div>
+
+        {/* Away Controls */}
+        <div className="bg-white/[0.03] border border-white/5 rounded-xl p-4 space-y-3">
+          <p className="text-xs font-bold uppercase tracking-wider text-center truncate" style={{ color: match.awayTeam.color }}>
+            {match.awayTeam.shortName}
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              className="flex-1 h-11 bg-emerald-600/80 hover:bg-emerald-500 text-white font-bold text-sm rounded-xl"
+              onClick={() => sendAction({ type: 'goal', team: 'away' })}
+            >
+              + GOL
+            </Button>
+            <Button
+              className="h-11 w-11 bg-white/5 hover:bg-white/10 text-zinc-400 border border-white/10 rounded-xl text-lg font-bold"
+              onClick={() => sendAction({ type: 'minus_goal', team: 'away' })}
+            >
+              -
+            </Button>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              className="flex-1 h-10 bg-yellow-500/80 hover:bg-yellow-400 text-zinc-900 font-bold text-xs rounded-xl"
+              onClick={() => sendAction({ type: 'yellow_card', team: 'away', playerName: '' })}
+            >
+              AMARILLA
+            </Button>
+            <Button
+              className="flex-1 h-10 bg-red-600/80 hover:bg-red-500 text-white font-bold text-xs rounded-xl"
+              onClick={() => sendAction({ type: 'red_card', team: 'away', playerName: '' })}
+            >
+              ROJA
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Events List */}
+      {match.events.length > 0 && (
+        <div className="bg-white/[0.03] border border-white/5 rounded-xl p-4">
+          <h3 className="text-[10px] uppercase tracking-widest text-zinc-500 font-semibold mb-3">
+            Eventos ({match.events.length})
+          </h3>
+          <div className="space-y-1.5 max-h-40 overflow-y-auto">
+            {match.events.slice(0, 8).map((ev) => (
+              <div key={ev.id} className="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-white/[0.02]">
+                <span className="text-sm">{EVENT_ICONS[ev.type as keyof typeof EVENT_ICONS]}</span>
+                <span className="text-[11px] text-zinc-300 flex-1 truncate">
+                  {EVENT_LABELS[ev.type as keyof typeof EVENT_LABELS]}
+                  {ev.playerName ? ` — ${ev.playerName}` : ''}
+                </span>
+                <span className="text-[10px] text-zinc-600 font-mono">{ev.minute}&apos;</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Screen Card ──────────────────────────────────────────────────────────────
 
 function ScreenCard({
   screen,
@@ -64,7 +296,7 @@ function ScreenCard({
   return (
     <>
       <Card
-        className={`cursor-pointer transition-all duration-200 ${
+        className={`cursor-pointer transition-all duration-200 group ${
           isSelected
             ? 'border-emerald-500/50 bg-emerald-500/5 shadow-lg shadow-emerald-500/10'
             : 'border-white/5 bg-white/[0.02] hover:border-white/10 hover:bg-white/[0.04]'
@@ -119,48 +351,41 @@ function ScreenCard({
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-1 flex-shrink-0">
-              <button
-                onClick={(e) => { e.stopPropagation(); setShowQR(true); }}
-                className="p-2 rounded-lg hover:bg-white/5 transition-colors"
-                title="Código QR"
-              >
-                <QrCode className="w-4 h-4 text-zinc-400 hover:text-white" />
-              </button>
+            <div className="flex items-center gap-0.5 flex-shrink-0">
               <button
                 onClick={(e) => { e.stopPropagation(); onOpenDisplay(); }}
                 className="p-2 rounded-lg hover:bg-white/5 transition-colors"
-                title="Abrir Pantalla"
+                title="Desplegar Pantalla"
               >
                 <Tv className="w-4 h-4 text-zinc-400 hover:text-emerald-400" />
               </button>
               <button
-                onClick={(e) => { e.stopPropagation(); onOpenRemote(); }}
+                onClick={(e) => { e.stopPropagation(); setShowQR(true); }}
                 className="p-2 rounded-lg hover:bg-white/5 transition-colors"
-                title="Control Remoto"
+                title="QR Control Remoto"
               >
-                <Smartphone className="w-4 h-4 text-zinc-400 hover:text-violet-400" />
+                <QrCode className="w-4 h-4 text-zinc-400 hover:text-violet-400" />
               </button>
               <button
                 onClick={(e) => { e.stopPropagation(); onDelete(); }}
                 className="p-2 rounded-lg hover:bg-red-500/10 transition-colors"
                 title="Eliminar"
               >
-                <Trash2 className="w-4 h-4 text-zinc-400 hover:text-red-400" />
+                <Trash2 className="w-4 h-4 text-zinc-600 hover:text-red-400" />
               </button>
             </div>
           </div>
         </CardHeader>
         <CardContent className="pt-0">
           {/* Score display */}
-          <div className="flex items-center justify-center gap-4 py-3">
+          <div className="flex items-center justify-center gap-4 py-2">
             <div className="text-center">
-              <p className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">{screen.homeTeam}</p>
+              <p className="text-[10px] uppercase tracking-wider text-zinc-500 mb-0.5">{screen.homeTeam}</p>
               <span className="text-3xl font-black text-white tabular-nums">{screen.homeScore}</span>
             </div>
-            <span className="text-xl font-light text-zinc-600">-</span>
+            <span className="text-lg font-light text-zinc-600">-</span>
             <div className="text-center">
-              <p className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">{screen.awayTeam}</p>
+              <p className="text-[10px] uppercase tracking-wider text-zinc-500 mb-0.5">{screen.awayTeam}</p>
               <span className="text-3xl font-black text-white tabular-nums">{screen.awayScore}</span>
             </div>
           </div>
@@ -197,7 +422,7 @@ function ScreenCard({
         <DialogContent className="bg-zinc-900 border-white/10 text-white max-w-sm mx-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <QrCode className="w-5 h-5 text-emerald-400" />
+              <QrCode className="w-5 h-5 text-violet-400" />
               Control Remoto — {screen.name}
             </DialogTitle>
           </DialogHeader>
@@ -213,7 +438,7 @@ function ScreenCard({
               />
             </div>
             <p className="text-xs text-zinc-400 text-center">
-              Escanea este código con tu celular para acceder al control remoto de esta pantalla
+              Escanea este codigo con tu celular para controlar esta pantalla desde tu telefono
             </p>
             <div className="w-full bg-white/5 rounded-lg p-3">
               <p className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">URL de Control Remoto</p>
@@ -226,12 +451,18 @@ function ScreenCard({
   );
 }
 
+// ── Main Screens Tab ─────────────────────────────────────────────────────────
+
 export function ScreensTab({
   activeScreenId,
   onSelectScreen,
+  wsState,
+  wsSendAction,
 }: {
   activeScreenId: string | null;
   onSelectScreen: (screenId: string) => void;
+  wsState: ScreenState | null;
+  wsSendAction: (action: Record<string, unknown>) => void;
 }) {
   const { connected, screens, createScreen, deleteScreen, renameScreen } = useScreens();
   const [newName, setNewName] = useState('');
@@ -249,14 +480,12 @@ export function ScreensTab({
     window.open(url, '_blank');
   };
 
-  const handleOpenRemote = (screenId: string) => {
-    const url = `control-remoto?screen=${screenId}`;
-    window.open(url, '_blank');
-  };
+  // Find selected screen from list for info
+  const selectedScreen = screens.find(s => s.id === activeScreenId);
 
   return (
     <div className="space-y-4">
-      {/* Connection Status */}
+      {/* Connection Status + Create */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           {connected ? (
@@ -298,7 +527,7 @@ export function ScreensTab({
                 />
               </div>
               <p className="text-xs text-zinc-500">
-                Cada pantalla es un marcador independiente que se puede mostrar en un monitor/TV diferente.
+                Cada pantalla es un marcador independiente que se despliega en un monitor/TV. Selecciona una pantalla para controlarla directamente desde aqui.
               </p>
             </div>
             <DialogFooter>
@@ -313,6 +542,11 @@ export function ScreensTab({
         </Dialog>
       </div>
 
+      {/* Inline Remote Control (when a screen is selected) */}
+      {activeScreenId && wsState && (
+        <InlineRemoteControl state={wsState} sendAction={wsSendAction} />
+      )}
+
       {/* Screens Grid */}
       {screens.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -321,11 +555,11 @@ export function ScreensTab({
           </div>
           <h3 className="text-lg font-semibold text-zinc-400 mb-2">Sin Pantallas</h3>
           <p className="text-sm text-zinc-600 max-w-xs">
-            Crea una nueva pantalla para empezar a controlar un marcador. Cada pantalla se puede mostrar en un monitor diferente.
+            Crea una nueva pantalla para desplegar un marcador en un monitor/TV. Selecciona una pantalla para controlarla desde aqui.
           </p>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {screens.map((screen) => (
             <ScreenCard
               key={screen.id}
@@ -333,7 +567,7 @@ export function ScreensTab({
               onDelete={() => deleteScreen(screen.id)}
               onRename={(name) => renameScreen(screen.id, name)}
               onOpenDisplay={() => handleOpenDisplay(screen.id)}
-              onOpenRemote={() => handleOpenRemote(screen.id)}
+              onOpenRemote={() => {}}
               onSelect={() => onSelectScreen(screen.id)}
               isSelected={screen.id === activeScreenId}
               connected={connected}
@@ -347,7 +581,7 @@ export function ScreensTab({
         <div className="flex items-center justify-center gap-6 py-3 text-xs text-zinc-500">
           <span>{screens.length} pantalla{screens.length > 1 ? 's' : ''}</span>
           <span className="w-1 h-1 rounded-full bg-zinc-700" />
-          <span>{screens.filter(s => s.displays > 0).length} conectada{screens.filter(s => s.displays > 0).length !== 1 ? 's' : ''}</span>
+          <span>{screens.filter(s => s.displays > 0).length} desplegada{screens.filter(s => s.displays > 0).length !== 1 ? 's' : ''}</span>
           <span className="w-1 h-1 rounded-full bg-zinc-700" />
           <span>{screens.filter(s => s.remotes > 0).length} con remoto</span>
           <span className="w-1 h-1 rounded-full bg-zinc-700" />

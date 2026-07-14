@@ -775,10 +775,12 @@ function DisplayPreview({ open, onClose }: { open: boolean; onClose: () => void 
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 
-export function ControlPanel({ activeScreenId, onSelectScreen, wsConnected }: {
+export function ControlPanel({ activeScreenId, onSelectScreen, wsConnected, wsState, wsSendAction }: {
   activeScreenId: string | null;
   onSelectScreen: (id: string | null) => void;
   wsConnected: boolean;
+  wsState: import('@/hooks/useSocket').ScreenState | null;
+  wsSendAction: (action: Record<string, unknown>) => void;
 }) {
   const [showPreview, setShowPreview] = useState(false);
 
@@ -844,7 +846,7 @@ export function ControlPanel({ activeScreenId, onSelectScreen, wsConnected }: {
             <TabsTrigger value="publicidad" className="flex-1 gap-1.5 py-2.5 text-xs text-white/40 data-[state=active]:bg-white/[0.08] data-[state=active]:text-white rounded-lg"><Megaphone className="w-3.5 h-3.5" />Ads</TabsTrigger>
             <TabsTrigger value="skins" className="flex-1 gap-1.5 py-2.5 text-xs text-white/40 data-[state=active]:bg-white/[0.08] data-[state=active]:text-white rounded-lg"><Palette className="w-3.5 h-3.5" />Skins</TabsTrigger>
           </TabsList>
-          <TabsContent value="pantallas"><ScreensTab activeScreenId={activeScreenId} onSelectScreen={onSelectScreen} /></TabsContent>
+          <TabsContent value="pantallas"><ScreensTab activeScreenId={activeScreenId} onSelectScreen={onSelectScreen} wsState={wsState} wsSendAction={wsSendAction} /></TabsContent>
           <TabsContent value="equipos"><EquiposTab /></TabsContent>
           <TabsContent value="marcador"><ScoreTab /></TabsContent>
           <TabsContent value="eventos"><EventsTab /></TabsContent>
