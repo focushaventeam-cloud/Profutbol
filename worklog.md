@@ -348,3 +348,72 @@ Stage Summary:
 - Ads system completely redesigned: no URLs, only file uploads for images and short videos
 - BroadcastChannel sync still available for two-tab setup, but preview overlay is the primary way to see the display
 - Deployed at: https://focushaventeam-cloud.github.io/Profutbol/
+
+---
+Task ID: 11
+Agent: Main Agent
+Task: Create remote control system for shared screens with QR code access
+
+Work Log:
+- Installed qrcode.react for QR code generation
+- Created WebSocket mini-service at mini-services/remote-control/ (port 3003):
+  - Screen management: create, delete, rename screens
+  - Each screen has its own match state, timer (server-side), skins, ads
+  - Client roles: control, display, remote
+  - Timer runs server-side with auto-transition (half-time, full-time)
+  - Action processing: goals, cards, timer, teams, events, skins, ads
+  - Full state sync and broadcast to all connected clients
+- Created src/hooks/useSocket.ts with:
+  - useSocket() - base WebSocket connection with reconnect
+  - useScreens() - screen list management (create, delete, rename)
+  - useScreenSubscription() - subscribe to a specific screen's state
+  - useDisplayClient() - for display pages (marcador)
+  - useRemoteClient() - for remote control pages
+- Created src/components/control/ScreensTab.tsx:
+  - Lists all screens with status, score, connected clients
+  - Create new screen dialog
+  - Screen cards with: name, score, status, display/remote counts
+  - QR code dialog for each screen (links to /control-remoto?screen=ID)
+  - Open display and remote control buttons
+  - Rename and delete screen
+  - Connection status indicator
+  - Summary bar: total screens, connected, with remote, live
+- Created src/app/control-remoto/page.tsx:
+  - Mobile-optimized remote control UI
+  - Connects via WebSocket to a specific screen
+  - Shows: connection status, screen name, live scoreboard preview
+  - Timer controls: start/pause/reset
+  - Score controls: +GOL / - for each team
+  - Card/foul controls: yellow/red for each team
+  - Recent events list
+  - Large touch-friendly buttons with active:scale-95 feedback
+- Updated src/app/marcador/page.tsx:
+  - Now supports ?screen=ID query param for WebSocket-based display
+  - Falls back to BroadcastChannel for local same-browser tabs
+  - Shows "PANTALLA CONECTADA" indicator when connected via WebSocket
+- Updated src/app/page.tsx:
+  - WebSocket bridge: bidirectional sync between local Zustand store and server
+  - Anti-echo flag prevents infinite sync loops
+  - Timer: server-side when screen selected, local when no screen
+  - Status/period auto-transition: local when no screen, server when screen
+- Updated src/components/control/ControlPanel.tsx:
+  - Added "Pantallas" as first tab (default)
+  - Shows active screen indicator (violet) when controlling via server
+  - Accepts props: activeScreenId, onSelectScreen, wsConnected
+- Verified all routes serve correctly: /, /control-remoto, /marcador
+- ESLint passes clean
+- Note: agent-browser cannot be used (Chrome + Next.js dev server together exceed available memory in sandbox)
+
+Stage Summary:
+- Complete multi-screen remote control system built:
+  * WebSocket service manages multiple independent scoreboard screens
+  * Control panel has new "Pantallas" tab for screen management
+  * Each screen can have multiple display clients (TVs) and remote controls (phones)
+  * QR codes link to mobile-optimized remote control page
+  * Remote controls: scores, timer, cards/fouls, event list
+  * Timer runs server-side for accurate multi-device sync
+  * Server handles auto-transitions (half-time, full-time)
+- Architecture: Control (browser) <-> WebSocket (port 3003) <-> Displays/Remotes
+- Backward compatible: BroadcastChannel still works for local same-browser preview
+- Files created: useSocket.ts, ScreensTab.tsx, remote-control service, control-remoto page
+- Files modified: ControlPanel.tsx, page.tsx, marcador/page.tsx

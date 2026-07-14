@@ -17,9 +17,10 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import {
   Play, Pause, RotateCcw, Plus, Minus, Trash2, Monitor,
   Trophy, Settings, List, Palette, Upload, X, Check, ImagePlus, Megaphone,
-  Eye, Maximize2, Film,
+  Eye, Maximize2, Film, MonitorSmartphone,
 } from 'lucide-react';
 import { StadiumDisplay } from '@/components/scoreboard/StadiumDisplay';
+import { ScreensTab } from '@/components/control/ScreensTab';
 
 const genId = () => `id-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
@@ -774,7 +775,11 @@ function DisplayPreview({ open, onClose }: { open: boolean; onClose: () => void 
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 
-export function ControlPanel() {
+export function ControlPanel({ activeScreenId, onSelectScreen, wsConnected }: {
+  activeScreenId: string | null;
+  onSelectScreen: (id: string | null) => void;
+  wsConnected: boolean;
+}) {
   const [showPreview, setShowPreview] = useState(false);
 
   return (
@@ -818,15 +823,28 @@ export function ControlPanel() {
         </div>
       </header>
 
+      {/* Active screen indicator */}
+      {activeScreenId && (
+        <div className="max-w-4xl mx-auto px-4 pt-4 relative z-10">
+          <div className="flex items-center gap-2 bg-violet-500/10 border border-violet-500/20 rounded-xl px-3 py-2">
+            <MonitorSmartphone className="w-4 h-4 text-violet-400" />
+            <span className="text-xs text-violet-300 font-medium">Controlando pantalla via servidor</span>
+            {wsConnected && <span className="text-[10px] text-emerald-400 ml-auto">En linea</span>}
+          </div>
+        </div>
+      )}
+
       <main className="max-w-4xl mx-auto px-4 py-6 pb-20 relative z-10">
-        <Tabs defaultValue="marcador" className="w-full">
+        <Tabs defaultValue="pantallas" className="w-full">
           <TabsList className="w-full mb-4 bg-white/[0.05] p-1 h-auto border border-white/[0.06] rounded-xl">
+            <TabsTrigger value="pantallas" className="flex-1 gap-1.5 py-2.5 text-xs text-white/40 data-[state=active]:bg-white/[0.08] data-[state=active]:text-white rounded-lg"><MonitorSmartphone className="w-3.5 h-3.5" />Pantallas</TabsTrigger>
             <TabsTrigger value="equipos" className="flex-1 gap-1.5 py-2.5 text-xs text-white/40 data-[state=active]:bg-white/[0.08] data-[state=active]:text-white rounded-lg"><Settings className="w-3.5 h-3.5" />Equipos</TabsTrigger>
             <TabsTrigger value="marcador" className="flex-1 gap-1.5 py-2.5 text-xs text-white/40 data-[state=active]:bg-white/[0.08] data-[state=active]:text-white rounded-lg"><Trophy className="w-3.5 h-3.5" />Marcador</TabsTrigger>
             <TabsTrigger value="eventos" className="flex-1 gap-1.5 py-2.5 text-xs text-white/40 data-[state=active]:bg-white/[0.08] data-[state=active]:text-white rounded-lg"><List className="w-3.5 h-3.5" />Eventos</TabsTrigger>
             <TabsTrigger value="publicidad" className="flex-1 gap-1.5 py-2.5 text-xs text-white/40 data-[state=active]:bg-white/[0.08] data-[state=active]:text-white rounded-lg"><Megaphone className="w-3.5 h-3.5" />Ads</TabsTrigger>
             <TabsTrigger value="skins" className="flex-1 gap-1.5 py-2.5 text-xs text-white/40 data-[state=active]:bg-white/[0.08] data-[state=active]:text-white rounded-lg"><Palette className="w-3.5 h-3.5" />Skins</TabsTrigger>
           </TabsList>
+          <TabsContent value="pantallas"><ScreensTab activeScreenId={activeScreenId} onSelectScreen={onSelectScreen} /></TabsContent>
           <TabsContent value="equipos"><EquiposTab /></TabsContent>
           <TabsContent value="marcador"><ScoreTab /></TabsContent>
           <TabsContent value="eventos"><EventsTab /></TabsContent>

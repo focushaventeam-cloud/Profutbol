@@ -1,0 +1,849 @@
+     1→     1→'use client';
+     2→     2→
+     3→     3→import { useState, useRef, useCallback } from 'react';
+     4→     4→import { useScoreboardStore } from '@/stores/scoreboardStore';
+     5→     5→import {
+     6→     6→  MatchStatus, MatchPeriod, EventType, TeamSide, MatchFormat,
+     7→     7→  EVENT_ICONS, EVENT_LABELS, PERIOD_LABELS, STATUS_LABELS,
+     8→     8→  FORMAT_OPTIONS, HALF_DURATION_OPTIONS, SkinData,
+     9→     9→} from '@/types';
+    10→    10→import { Button } from '@/components/ui/button';
+    11→    11→import { Input } from '@/components/ui/input';
+    12→    12→import { Label } from '@/components/ui/label';
+    13→    13→import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+    14→    14→import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+    15→    15→import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+    16→    16→import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+    17→    17→import {
+    18→    18→  Play, Pause, RotateCcw, Plus, Minus, Trash2, Monitor,
+    19→    19→  Trophy, Settings, List, Palette, Upload, X, Check, ImagePlus, Megaphone,
+    20→    20→  Eye, Maximize2, Film,
+    21→    21→} from 'lucide-react';
+    22→    22→import { StadiumDisplay } from '@/components/scoreboard/StadiumDisplay';
+    23→    23→
+    24→    24→const genId = () => `id-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    25→    25→
+    26→    26→// ── Color picker ───────────────────────────────────────────────────────────────
+    27→    27→
+    28→    28→function ColorPicker({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+    29→    29→  return (
+    30→    30→    <div className="flex items-center gap-2">
+    31→    31→      <input type="color" value={value} onChange={(e) => onChange(e.target.value)}
+    32→    32→        className="w-10 h-10 rounded-lg border-2 border-white/10 cursor-pointer bg-transparent p-0.5" />
+    33→    33→      <div className="flex-1">
+    34→    34→        <span className="text-xs text-white/50">{label}</span>
+    35→    35→        <p className="text-[10px] font-mono text-white/30">{value}</p>
+    36→    36→      </div>
+    37→    37→    </div>
+    38→    38→  );
+    39→    39→}
+    40→    40→
+    41→    41→// ── Logo uploader ──────────────────────────────────────────────────────────────
+    42→    42→
+    43→    43→function LogoUploader({ logo, onUpload, onRemove }: { logo: string; onUpload: (b64: string) => void; onRemove: () => void }) {
+    44→    44→  const fileRef = useRef<HTMLInputElement>(null);
+    45→    45→  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    46→    46→    const file = e.target.files?.[0];
+    47→    47→    if (!file || !file.type.startsWith('image/') || file.size > 2 * 1024 * 1024) return;
+    48→    48→    const reader = new FileReader();
+    49→    49→    reader.onload = () => { if (typeof reader.result === 'string') onUpload(reader.result); };
+    50→    50→    reader.readAsDataURL(file);
+    51→    51→  };
+    52→    52→  return (
+    53→    53→    <div className="flex items-center gap-3">
+    54→    54→      <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
+    55→    55→      {logo ? (
+    56→    56→        <div className="relative group">
+    57→    57→          <img src={logo} alt="Logo" className="w-14 h-14 rounded-xl object-contain border border-white/10 bg-white/5" />
+    58→    58→          <button onClick={onRemove}
+    59→    59→            className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+    60→    60→            <X className="w-3 h-3" />
+    61→    61→          </button>
+    62→    62→        </div>
+    63→    63→      ) : (
+    64→    64→        <button onClick={() => fileRef.current?.click()}
+    65→    65→          className="w-14 h-14 rounded-xl border-2 border-dashed border-white/15 flex flex-col items-center justify-center gap-0.5 hover:border-white/30 hover:bg-white/5 transition-colors">
+    66→    66→          <Upload className="w-4 h-4 text-white/30" />
+    67→    67→          <span className="text-[8px] text-white/30">Logo</span>
+    68→    68→        </button>
+    69→    69→      )}
+    70→    70→      <Button variant="ghost" size="sm" className="h-8 text-xs gap-1 text-white/50 hover:text-white hover:bg-white/10" onClick={() => fileRef.current?.click()}>
+    71→    71→        <ImagePlus className="w-3 h-3" />{logo ? 'Cambiar' : 'Subir'}
+    72→    72→      </Button>
+    73→    73→    </div>
+    74→    74→  );
+    75→    75→}
+    76→    76→
+    77→    77→// ── Team card ──────────────────────────────────────────────────────────────────
+    78→    78→
+    79→    79→function TeamCard({ side, label }: { side: TeamSide; label: string }) {
+    80→    80→  const team = useScoreboardStore((s) => s.match[side === 'home' ? 'homeTeam' : 'awayTeam']);
+    81→    81→  const setTeamName = useScoreboardStore((s) => s.setTeamName);
+    82→    82→  const setTeamColor = useScoreboardStore((s) => s.setTeamColor);
+    83→    83→  const setTeamLogo = useScoreboardStore((s) => s.setTeamLogo);
+    84→    84→  return (
+    85→    85→    <Card className="glass-panel rounded-xl">
+    86→    86→      <CardHeader className="pb-3">
+    87→    87→        <CardTitle className="text-sm font-bold text-white/70 uppercase tracking-wider flex items-center gap-2">
+    88→    88→          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: team.color }} />
+    89→    89→          {label}
+    90→    90→        </CardTitle>
+    91→    91→      </CardHeader>
+    92→    92→      <CardContent className="space-y-3">
+    93→    93→        <LogoUploader logo={team.logo} onUpload={(b64) => setTeamLogo(side, b64)} onRemove={() => setTeamLogo(side, '')} />
+    94→    94→        <div>
+    95→    95→          <Label className="text-xs text-white/50 mb-1 block">Nombre</Label>
+    96→    96→          <Input value={team.name} onChange={(e) => setTeamName(side, e.target.value, e.target.value.slice(0, 10).toUpperCase())}
+    97→    97→            placeholder="Nombre del equipo" className="glass-input" />
+    98→    98→        </div>
+    99→    99→        <div>
+   100→   100→          <Label className="text-xs text-white/50 mb-1 block">Abreviatura</Label>
+   101→   101→          <Input value={team.shortName} onChange={(e) => setTeamName(side, team.name, e.target.value.toUpperCase())}
+   102→   102→            placeholder="ABREV" maxLength={10} className="glass-input font-bold text-center text-lg" />
+   103→   103→        </div>
+   104→   104→        <div className="space-y-2">
+   105→   105→          <Label className="text-xs text-white/50">Colores</Label>
+   106→   106→          <div className="flex gap-3">
+   107→   107→            <ColorPicker label="Principal" value={team.color} onChange={(c) => setTeamColor(side, c, team.colorSecondary)} />
+   108→   108→            <ColorPicker label="Secundario" value={team.colorSecondary} onChange={(c) => setTeamColor(side, team.color, c)} />
+   109→   109→          </div>
+   110→   110→        </div>
+   111→   111→      </CardContent>
+   112→   112→    </Card>
+   113→   113→  );
+   114→   114→}
+   115→   115→
+   116→   116→// ── TAB: Equipos ───────────────────────────────────────────────────────────────
+   117→   117→
+   118→   118→function EquiposTab() {
+   119→   119→  return (
+   120→   120→    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+   121→   121→      <TeamCard side="home" label="Equipo Local" />
+   122→   122→      <TeamCard side="away" label="Equipo Visitante" />
+   123→   123→    </div>
+   124→   124→  );
+   125→   125→}
+   126→   126→
+   127→   127→// ── TAB: Marcador ──────────────────────────────────────────────────────────────
+   128→   128→
+   129→   129→function ScoreTab() {
+   130→   130→  const match = useScoreboardStore((s) => s.match);
+   131→   131→  const isTimerRunning = useScoreboardStore((s) => s.isTimerRunning);
+   132→   132→  const startTimer = useScoreboardStore((s) => s.startTimer);
+   133→   133→  const pauseTimer = useScoreboardStore((s) => s.pauseTimer);
+   134→   134→  const updateScore = useScoreboardStore((s) => s.updateScore);
+   135→   135→  const setStatus = useScoreboardStore((s) => s.setStatus);
+   136→   136→  const setPeriod = useScoreboardStore((s) => s.setPeriod);
+   137→   137→  const resetMatch = useScoreboardStore((s) => s.resetMatch);
+   138→   138→  const setField = useScoreboardStore((s) => s.setField);
+   139→   139→  const setFormat = useScoreboardStore((s) => s.setFormat);
+   140→   140→  const setHalfDuration = useScoreboardStore((s) => s.setHalfDuration);
+   141→   141→  const setAddedTime = useScoreboardStore((s) => s.setAddedTime);
+   142→   142→  const setExtraTimeAdded = useScoreboardStore((s) => s.setExtraTimeAdded);
+   143→   143→
+   144→   144→  const [showReset, setShowReset] = useState(false);
+   145→   145→  const canStart = match.status === 'waiting' || match.status === 'halftime';
+   146→   146→  const isFinished = match.status === 'finished';
+   147→   147→  const isLive = match.status === 'live';
+   148→   148→
+   149→   149→  const handleHalfTime = () => { pauseTimer(); setPeriod('second_half'); setStatus('halftime'); };
+   150→   150→  const handleFinish = () => { pauseTimer(); setStatus('finished'); };
+   151→   151→  const handleReset = () => { resetMatch(); setShowReset(false); };
+   152→   152→
+   153→   153→  const getMarcadorPath = () => {
+   154→   154→    const base = window.location.pathname.includes('/Profutbol') ? '/Profutbol' : '';
+   155→   155→    return `${base}/marcador`;
+   156→   156→  };
+   157→   157→
+   158→   158→  const currentAdded = (match.period === 'extra_time_first' || match.period === 'extra_time_second') ? match.extraTimeAdded : match.addedTime;
+   159→   159→
+   160→   160→  return (
+   161→   161→    <div className="space-y-3">
+   162→   162→      {/* Config */}
+   163→   163→      <Card className="glass-panel rounded-xl">
+   164→   164→        <CardHeader className="pb-3">
+   165→   165→          <CardTitle className="text-sm font-bold text-white/70 uppercase tracking-wider flex items-center gap-2">
+   166→   166→            <Settings className="w-4 h-4" />Configuración
+   167→   167→          </CardTitle>
+   168→   168→        </CardHeader>
+   169→   169→        <CardContent>
+   170→   170→          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+   171→   171→            <div>
+   172→   172→              <Label className="text-xs text-white/50 mb-1 block">Cancha</Label>
+   173→   173→              <Input value={match.field} onChange={(e) => setField(e.target.value)} className="glass-input h-9" />
+   174→   174→            </div>
+   175→   175→            <div>
+   176→   176→              <Label className="text-xs text-white/50 mb-1 block">Tipo</Label>
+   177→   177→              <Select value={match.format} onValueChange={(v) => setFormat(v as MatchFormat)}>
+   178→   178→                <SelectTrigger className="glass-input h-9"><SelectValue /></SelectTrigger>
+   179→   179→                <SelectContent>{FORMAT_OPTIONS.map((f) => <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>)}</SelectContent>
+   180→   180→              </Select>
+   181→   181→            </div>
+   182→   182→            <div>
+   183→   183→              <Label className="text-xs text-white/50 mb-1 block">Duración</Label>
+   184→   184→              <Select value={String(match.halfDuration)} onValueChange={(v) => setHalfDuration(Number(v))}>
+   185→   185→                <SelectTrigger className="glass-input h-9"><SelectValue /></SelectTrigger>
+   186→   186→                <SelectContent>{HALF_DURATION_OPTIONS.map((d) => <SelectItem key={d.value} value={String(d.value)}>{d.label}</SelectItem>)}</SelectContent>
+   187→   187→              </Select>
+   188→   188→            </div>
+   189→   189→            <div>
+   190→   190→              <Label className="text-xs text-white/50 mb-1 block">Tiempo añ.</Label>
+   191→   191→              <Input type="number" min={0} max={10} value={currentAdded || ''} onChange={(e) => {
+   192→   192→                const v = parseInt(e.target.value) || 0;
+   193→   193→                if (match.period === 'extra_time_first' || match.period === 'extra_time_second') setExtraTimeAdded(v);
+   194→   194→                else setAddedTime(v);
+   195→   195→              }} className="glass-input h-9" placeholder="min" />
+   196→   196→            </div>
+   197→   197→            <div className="flex items-end">
+   198→   198→              <p className="text-xs text-white/40 bg-white/5 rounded-lg p-2 text-center w-full">
+   199→   199→                Total: <strong className="text-white/60">{match.halfDuration * 2} min</strong>
+   200→   200→              </p>
+   201→   201→            </div>
+   202→   202→          </div>
+   203→   203→        </CardContent>
+   204→   204→      </Card>
+   205→   205→
+   206→   206→      {/* Status + Open */}
+   207→   207→      <div className="flex items-center justify-between">
+   208→   208→        <span className="text-xs px-2.5 py-1 rounded-full font-semibold uppercase tracking-wider"
+   209→   209→          style={{ backgroundColor: match.status === 'live' ? '#22c55e20' : isFinished ? '#ef444420' : '#f59e0b20',
+   210→   210→            color: match.status === 'live' ? '#22c55e' : isFinished ? '#ef4444' : '#f59e0b' }}>
+   211→   211→          {STATUS_LABELS[match.status]} • {PERIOD_LABELS[match.period]}
+   212→   212→        </span>
+   213→   213→        <Button variant="ghost" size="sm" onClick={() => window.open(getMarcadorPath(), '_blank')} className="gap-1.5 text-xs text-white/50 hover:text-white">
+   214→   214→          <Monitor className="w-3.5 h-3.5" />Abrir Marcador
+   215→   215→        </Button>
+   216→   216→      </div>
+   217→   217→
+   218→   218→      {/* Score */}
+   219→   219→      <Card className="glass-panel-strong rounded-2xl overflow-hidden">
+   220→   220→        <CardContent className="p-0">
+   221→   221→          <div className="grid grid-cols-[1fr_auto_1fr] items-center">
+   222→   222→            <div className="p-4 md:p-6 flex flex-col items-center text-center gap-2">
+   223→   223→              {match.homeTeam.logo ? (
+   224→   224→                <img src={match.homeTeam.logo} alt="" className="w-12 h-12 md:w-16 md:h-16 object-contain rounded-xl" />
+   225→   225→              ) : (
+   226→   226→                <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl flex items-center justify-center text-white font-black text-sm" style={{ backgroundColor: match.homeTeam.color }}>
+   227→   227→                  {match.homeTeam.shortName.slice(0, 3)}
+   228→   228→                </div>
+   229→   229→              )}
+   230→   230→              <span className="text-sm md:text-base font-bold truncate max-w-full" style={{ color: match.homeTeam.color }}>{match.homeTeam.name}</span>
+   231→   231→              <div className="flex gap-2 mt-1">
+   232→   232→                <Button size="sm" variant="ghost" className="h-10 w-10 rounded-full p-0 text-green-400 hover:bg-green-500/10" onClick={() => updateScore('home', 1)} disabled={isFinished}><Plus className="w-5 h-5" /></Button>
+   233→   233→                <Button size="sm" variant="ghost" className="h-10 w-10 rounded-full p-0 text-white/30 hover:bg-white/10 hover:text-white/60" onClick={() => updateScore('home', -1)} disabled={isFinished || match.homeScore <= 0}><Minus className="w-5 h-5" /></Button>
+   234→   234→              </div>
+   235→   235→            </div>
+   236→   236→            <div className="px-4 md:px-8 py-6 md:py-8 flex flex-col items-center justify-center border-x border-white/5 min-w-[160px] md:min-w-[220px]">
+   237→   237→              <div className="flex items-baseline gap-3">
+   238→   238→                <span className="text-5xl md:text-7xl font-black tabular-nums leading-none" style={{ color: match.homeTeam.color }}>{match.homeScore}</span>
+   239→   239→                <span className="text-2xl md:text-3xl font-extralight text-white/15">-</span>
+   240→   240→                <span className="text-5xl md:text-7xl font-black tabular-nums leading-none" style={{ color: match.awayTeam.color }}>{match.awayScore}</span>
+   241→   241→              </div>
+   242→   242→              <div className="mt-3 text-center">
+   243→   243→                <span className={`text-2xl md:text-3xl font-mono font-bold tabular-nums ${isLive ? 'text-white' : 'text-white/30'}`}>
+   244→   244→                  {String(Math.floor(match.currentTime / 60)).padStart(2, '0')}:{String(match.currentTime % 60).padStart(2, '0')}
+   245→   245→                </span>
+   246→   246→                {currentAdded > 0 && <span className="ml-1 text-lg font-mono font-bold text-blue-400">+{currentAdded}</span>}
+   247→   247→              </div>
+   248→   248→            </div>
+   249→   249→            <div className="p-4 md:p-6 flex flex-col items-center text-center gap-2">
+   250→   250→              {match.awayTeam.logo ? (
+   251→   251→                <img src={match.awayTeam.logo} alt="" className="w-12 h-12 md:w-16 md:h-16 object-contain rounded-xl" />
+   252→   252→              ) : (
+   253→   253→                <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl flex items-center justify-center text-white font-black text-sm" style={{ backgroundColor: match.awayTeam.color }}>
+   254→   254→                  {match.awayTeam.shortName.slice(0, 3)}
+   255→   255→                </div>
+   256→   256→              )}
+   257→   257→              <span className="text-sm md:text-base font-bold truncate max-w-full" style={{ color: match.awayTeam.color }}>{match.awayTeam.name}</span>
+   258→   258→              <div className="flex gap-2 mt-1">
+   259→   259→                <Button size="sm" variant="ghost" className="h-10 w-10 rounded-full p-0 text-green-400 hover:bg-green-500/10" onClick={() => updateScore('away', 1)} disabled={isFinished}><Plus className="w-5 h-5" /></Button>
+   260→   260→                <Button size="sm" variant="ghost" className="h-10 w-10 rounded-full p-0 text-white/30 hover:bg-white/10 hover:text-white/60" onClick={() => updateScore('away', -1)} disabled={isFinished || match.awayScore <= 0}><Minus className="w-5 h-5" /></Button>
+   261→   261→              </div>
+   262→   262→            </div>
+   263→   263→          </div>
+   264→   264→        </CardContent>
+   265→   265→      </Card>
+   266→   266→
+   267→   267→      {/* Controls */}
+   268→   268→      <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+   269→   269→        {canStart && (
+   270→   270→          <Button className="h-11 text-sm font-bold bg-green-600 hover:bg-green-700 text-white gap-1.5" onClick={startTimer}>
+   271→   271→            <Play className="w-4 h-4" />{match.status === 'waiting' ? 'Iniciar' : '2do Tiempo'}
+   272→   272→          </Button>
+   273→   273→        )}
+   274→   274→        {isLive && <Button variant="ghost" className="h-11 text-sm font-bold text-yellow-400 hover:bg-yellow-500/10 gap-1.5" onClick={pauseTimer}><Pause className="w-4 h-4" />Pausar</Button>}
+   275→   275→        {isLive && match.period === 'first_half' && <Button variant="ghost" className="h-11 text-sm font-bold text-orange-400 hover:bg-orange-500/10 gap-1.5" onClick={handleHalfTime}>Medio Tiempo</Button>}
+   276→   276→        {isLive && match.period === 'second_half' && <Button variant="ghost" className="h-11 text-sm font-bold text-red-400 hover:bg-red-500/10 gap-1.5" onClick={handleFinish}>Finalizar</Button>}
+   277→   277→        {!isLive && !isFinished && !canStart && <Button variant="ghost" className="h-11 text-sm font-bold text-yellow-400 hover:bg-yellow-500/10 gap-1.5" onClick={startTimer}><Play className="w-4 h-4" />Reanudar</Button>}
+   278→   278→        <div className="col-span-2 md:col-span-1 flex justify-end">
+   279→   279→          <AlertDialog open={showReset} onOpenChange={setShowReset}>
+   280→   280→            <AlertDialogTrigger asChild>
+   281→   281→              <Button variant="ghost" className="h-11 text-sm gap-1.5 text-white/30 hover:text-red-400 hover:bg-red-500/10">
+   282→   282→                <RotateCcw className="w-4 h-4" />Reiniciar
+   283→   283→              </Button>
+   284→   284→            </AlertDialogTrigger>
+   285→   285→            <AlertDialogContent className="bg-[#1a2332] border-white/10 text-white">
+   286→   286→              <AlertDialogHeader>
+   287→   287→                <AlertDialogTitle>¿Reiniciar partido?</AlertDialogTitle>
+   288→   288→                <AlertDialogDescription className="text-white/50">Se perderán todos los datos del partido actual, goles, tarjetas y eventos.</AlertDialogDescription>
+   289→   289→              </AlertDialogHeader>
+   290→   290→              <AlertDialogFooter>
+   291→   291→                <AlertDialogCancel className="bg-white/10 text-white hover:bg-white/20">Cancelar</AlertDialogCancel>
+   292→   292→                <AlertDialogAction className="bg-red-600 hover:bg-red-700 text-white" onClick={handleReset}>Reiniciar</AlertDialogAction>
+   293→   293→              </AlertDialogFooter>
+   294→   294→            </AlertDialogContent>
+   295→   295→          </AlertDialog>
+   296→   296→        </div>
+   297→   297→      </div>
+   298→   298→    </div>
+   299→   299→  );
+   300→   300→}
+   301→   301→
+   302→   302→// ── TAB: Eventos ───────────────────────────────────────────────────────────────
+   303→   303→
+   304→   304→function EventsTab() {
+   305→   305→  const match = useScoreboardStore((s) => s.match);
+   306→   306→  const addEvent = useScoreboardStore((s) => s.addEvent);
+   307→   307→  const removeEvent = useScoreboardStore((s) => s.removeEvent);
+   308→   308→  const [playerName, setPlayerName] = useState('');
+   309→   309→
+   310→   310→  const isFinished = match.status === 'finished';
+   311→   311→
+   312→   312→  const handleAdd = (type: EventType, team: TeamSide) => {
+   313→   313→    const currentMinute = Math.floor(match.currentTime / 60) + 1;
+   314→   314→    addEvent({
+   315→   315→      id: genId(),
+   316→   316→      type,
+   317→   317→      team,
+   318→   318→      playerName: playerName.trim() || undefined,
+   319→   319→      minute: currentMinute,
+   320→   320→    });
+   321→   321→    setPlayerName('');
+   322→   322→  };
+   323→   323→
+   324→   324→  return (
+   325→   325→    <div className="space-y-3">
+   326→   326→      <Card className="glass-panel rounded-xl">
+   327→   327→        <CardHeader className="pb-3">
+   328→   328→          <CardTitle className="text-sm font-bold text-white/70 uppercase tracking-wider flex items-center gap-2">
+   329→   329→            <List className="w-4 h-4" />Agregar Evento
+   330→   330→          </CardTitle>
+   331→   331→        </CardHeader>
+   332→   332→        <CardContent className="space-y-3">
+   333→   333→          <div>
+   334→   334→            <Label className="text-xs text-white/50 mb-1 block">Jugador (opcional)</Label>
+   335→   335→            <Input value={playerName} onChange={(e) => setPlayerName(e.target.value)} placeholder="Nombre del jugador..." className="glass-input" />
+   336→   336→          </div>
+   337→   337→          <div>
+   338→   338→            <Label className="text-xs text-white/50 mb-2 block">Equipo Local</Label>
+   339→   339→            <div className="flex flex-wrap gap-1.5">
+   340→   340→              {(['goal', 'yellow_card', 'red_card', 'own_goal'] as EventType[]).map((type) => (
+   341→   341→                <Button key={type} size="sm" variant="ghost" className="h-9 gap-1 text-xs text-white/60 hover:bg-white/10 hover:text-white" disabled={isFinished} onClick={() => handleAdd(type, 'home')}>
+   342→   342→                  <span>{EVENT_ICONS[type]}</span>{EVENT_LABELS[type]}
+   343→   343→                </Button>
+   344→   344→              ))}
+   345→   345→            </div>
+   346→   346→          </div>
+   347→   347→          <div>
+   348→   348→            <Label className="text-xs text-white/50 mb-2 block">Equipo Visitante</Label>
+   349→   349→            <div className="flex flex-wrap gap-1.5">
+   350→   350→              {(['goal', 'yellow_card', 'red_card', 'own_goal'] as EventType[]).map((type) => (
+   351→   351→                <Button key={type} size="sm" variant="ghost" className="h-9 gap-1 text-xs text-white/60 hover:bg-white/10 hover:text-white" disabled={isFinished} onClick={() => handleAdd(type, 'away')}>
+   352→   352→                  <span>{EVENT_ICONS[type]}</span>{EVENT_LABELS[type]}
+   353→   353→                </Button>
+   354→   354→              ))}
+   355→   355→            </div>
+   356→   356→          </div>
+   357→   357→        </CardContent>
+   358→   358→      </Card>
+   359→   359→
+   360→   360→      <Card className="glass-panel rounded-xl">
+   361→   361→        <CardHeader className="pb-2">
+   362→   362→          <CardTitle className="text-sm font-bold text-white/70 uppercase tracking-wider">Eventos ({match.events.length})</CardTitle>
+   363→   363→        </CardHeader>
+   364→   364→        <CardContent>
+   365→   365→          {match.events.length === 0 ? <p className="text-sm text-white/30 text-center py-4">Sin eventos</p> : (
+   366→   366→            <div className="space-y-1.5 max-h-72 overflow-y-auto">
+   367→   367→              {match.events.map((ev) => (
+   368→   368→                <div key={ev.id} className="flex items-center gap-2.5 py-2 px-3 rounded-lg bg-white/[0.03] group">
+   369→   369→                  <span className="text-base">{EVENT_ICONS[ev.type]}</span>
+   370→   370→                  <span className="text-xs font-bold text-white/60 w-8">{ev.minute}&apos;</span>
+   371→   371→                  <span className="text-xs font-semibold text-white/70 flex-1 truncate">
+   372→   372→                    {EVENT_LABELS[ev.type]} {ev.team === 'home' ? match.homeTeam.shortName : match.awayTeam.shortName}
+   373→   373→                    {ev.playerName ? ` — ${ev.playerName}` : ''}
+   374→   374→                  </span>
+   375→   375→                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 text-white/20 hover:text-red-400" onClick={() => removeEvent(ev.id)}><Trash2 className="w-3.5 h-3.5" /></Button>
+   376→   376→                </div>
+   377→   377→              ))}
+   378→   378→            </div>
+   379→   379→          )}
+   380→   380→        </CardContent>
+   381→   381→      </Card>
+   382→   382→    </div>
+   383→   383→  );
+   384→   384→}
+   385→   385→
+   386→   386→// ── TAB: Publicidad ────────────────────────────────────────────────────────────
+   387→   387→
+   388→   388→function PublicidadTab() {
+   389→   389→  const ads = useScoreboardStore((s) => s.ads);
+   390→   390→  const activeAdIndex = useScoreboardStore((s) => s.activeAdIndex);
+   391→   391→  const addAd = useScoreboardStore((s) => s.addAd);
+   392→   392→  const removeAd = useScoreboardStore((s) => s.removeAd);
+   393→   393→  const cycleAd = useScoreboardStore((s) => s.cycleAd);
+   394→   394→  const [text, setText] = useState('');
+   395→   395→  const [dur, setDur] = useState('15');
+   396→   396→  const [mediaData, setMediaData] = useState('');
+   397→   397→  const [mediaType, setMediaType] = useState<'image' | 'video' | 'none'>('none');
+   398→   398→  const fileRef = useRef<HTMLInputElement>(null);
+   399→   399→
+   400→   400→  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+   401→   401→    const file = e.target.files?.[0];
+   402→   402→    if (!file) return;
+   403→   403→
+   404→   404→    // Size limits: 5MB for images, 15MB for videos
+   405→   405→    const maxSize = file.type.startsWith('video/') ? 15 * 1024 * 1024 : 5 * 1024 * 1024;
+   406→   406→    if (file.size > maxSize) return;
+   407→   407→
+   408→   408→    const reader = new FileReader();
+   409→   409→    reader.onload = () => {
+   410→   410→      if (typeof reader.result === 'string') {
+   411→   411→        setMediaData(reader.result);
+   412→   412→        setMediaType(file.type.startsWith('video/') ? 'video' : 'image');
+   413→   413→      }
+   414→   414→    };
+   415→   415→    reader.readAsDataURL(file);
+   416→   416→    // Reset input so the same file can be re-selected
+   417→   417→    e.target.value = '';
+   418→   418→  }, []);
+   419→   419→
+   420→   420→  const handleAdd = () => {
+   421→   421→    if (!text.trim()) return;
+   422→   422→    addAd({
+   423→   423→      id: genId(),
+   424→   424→      text: text.trim(),
+   425→   425→      mediaData,
+   426→   426→      mediaType,
+   427→   427→      duration: parseInt(dur) || 15,
+   428→   428→      active: true,
+   429→   429→    });
+   430→   430→    setText('');
+   431→   431→    setDur('15');
+   432→   432→    setMediaData('');
+   433→   433→    setMediaType('none');
+   434→   434→  };
+   435→   435→
+   436→   436→  const handleRemoveMedia = () => {
+   437→   437→    setMediaData('');
+   438→   438→    setMediaType('none');
+   439→   439→    if (fileRef.current) fileRef.current.value = '';
+   440→   440→  };
+   441→   441→
+   442→   442→  return (
+   443→   443→    <div className="space-y-3">
+   444→   444→      <Card className="glass-panel rounded-xl">
+   445→   445→        <CardHeader className="pb-2">
+   446→   446→          <CardTitle className="text-sm font-bold text-white/70 uppercase tracking-wider flex items-center gap-2">
+   447→   447→            <Megaphone className="w-4 h-4" />Nueva Publicidad
+   448→   448→          </CardTitle>
+   449→   449→        </CardHeader>
+   450→   450→        <CardContent className="space-y-3">
+   451→   451→          {/* File upload area */}
+   452→   452→          <div>
+   453→   453→            <Label className="text-xs text-white/50 mb-1.5 block">Imagen o Video (máx 5MB imagen / 15MB video)</Label>
+   454→   454→            <input ref={fileRef} type="file" accept="image/*,video/mp4,video/webm" className="hidden" onChange={handleFileSelect} />
+   455→   455→            {mediaData ? (
+   456→   456→              <div className="relative group rounded-xl overflow-hidden border border-white/10">
+   457→   457→                {mediaType === 'video' ? (
+   458→   458→                  <video src={mediaData} className="w-full h-32 object-cover rounded-xl" muted />
+   459→   459→                ) : (
+   460→   460→                  <img src={mediaData} alt="Preview" className="w-full h-32 object-cover rounded-xl" />
+   461→   461→                )}
+   462→   462→                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+   463→   463→                  <Button size="sm" variant="ghost" className="text-white gap-1.5" onClick={handleRemoveMedia}>
+   464→   464→                    <X className="w-4 h-4" />Quitar
+   465→   465→                  </Button>
+   466→   466→                </div>
+   467→   467→                <div className="absolute top-2 left-2">
+   468→   468→                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-black/60 text-white backdrop-blur-sm flex items-center gap-1">
+   469→   469→                    {mediaType === 'video' ? <Film className="w-3 h-3" /> : <ImagePlus className="w-3 h-3" />}
+   470→   470→                    {mediaType === 'video' ? 'Video' : 'Imagen'}
+   471→   471→                  </span>
+   472→   472→                </div>
+   473→   473→              </div>
+   474→   474→            ) : (
+   475→   475→              <button
+   476→   476→                onClick={() => fileRef.current?.click()}
+   477→   477→                className="w-full h-24 rounded-xl border-2 border-dashed border-white/15 flex flex-col items-center justify-center gap-1.5 hover:border-white/30 hover:bg-white/5 transition-colors cursor-pointer"
+   478→   478→              >
+   479→   479→                <Upload className="w-5 h-5 text-white/30" />
+   480→   480→                <span className="text-xs text-white/40">Arrastra o haz clic para subir imagen/video</span>
+   481→   481→                <span className="text-[10px] text-white/25">JPG, PNG, GIF, MP4, WebM</span>
+   482→   482→              </button>
+   483→   483→            )}
+   484→   484→          </div>
+   485→   485→
+   486→   486→          <div>
+   487→   487→            <Label className="text-xs text-white/50 mb-1 block">Nombre del patrocinador</Label>
+   488→   488→            <Input value={text} onChange={(e) => setText(e.target.value)} placeholder="Texto del patrocinador..." className="glass-input" />
+   489→   489→          </div>
+   490→   490→
+   491→   491→          <div className="flex gap-2">
+   492→   492→            <div className="flex-1">
+   493→   493→              <Label className="text-xs text-white/50 mb-1 block">Duración en pantalla (seg)</Label>
+   494→   494→              <Input type="number" min={5} max={120} value={dur} onChange={(e) => setDur(e.target.value)} className="glass-input h-9" />
+   495→   495→            </div>
+   496→   496→            <div className="flex items-end">
+   497→   497→              <Button className="h-9 gap-1.5 text-sm" onClick={handleAdd} disabled={!text.trim()}>
+   498→   498→                <Plus className="w-4 h-4" />Agregar
+   499→   499→              </Button>
+   500→   500→            </div>
+   501→   501→          </div>
+   502→   502→        </CardContent>
+   503→   503→      </Card>
+   504→   504→
+   505→   505→      {/* Ad cycling controls */}
+   506→   506→      {ads.length > 0 && (
+   507→   507→        <div className="flex items-center gap-2">
+   508→   508→          <Button variant="ghost" size="sm" className="text-xs text-white/50 hover:text-white gap-1.5" onClick={cycleAd}>
+   509→   509→            ⏭ Siguiente
+   510→   510→          </Button>
+   511→   511→          <span className="text-xs text-white/30">
+   512→   512→            Mostrando: {ads[activeAdIndex % ads.length]?.text} ({ads[activeAdIndex % ads.length]?.duration}s)
+   513→   513→          </span>
+   514→   514→          <span className="text-[10px] text-white/20 ml-auto">
+   515→   515→            {ads.filter(a => a.mediaType !== 'none').length} con media • {ads.length} total
+   516→   516→          </span>
+   517→   517→        </div>
+   518→   518→      )}
+   519→   519→
+   520→   520→      {/* Ad list */}
+   521→   521→      <Card className="glass-panel rounded-xl">
+   522→   522→        <CardHeader className="pb-2">
+   523→   523→          <CardTitle className="text-sm font-bold text-white/70 uppercase tracking-wider">Publicidades ({ads.length})</CardTitle>
+   524→   524→        </CardHeader>
+   525→   525→        <CardContent>
+   526→   526→          {ads.length === 0 ? (
+   527→   527→            <p className="text-sm text-white/30 text-center py-6">Sin publicidades agregadas</p>
+   528→   528→          ) : (
+   529→   529→            <div className="space-y-2 max-h-72 overflow-y-auto">
+   530→   530→              {ads.map((ad, i) => (
+   531→   531→                <div
+   532→   532→                  key={ad.id}
+   533→   533→                  className={`flex items-center gap-3 py-2.5 px-3 rounded-lg bg-white/[0.03] group transition-all ${i === activeAdIndex % ads.length ? 'ring-1 ring-emerald-500/30 bg-emerald-500/5' : ''}`}
+   534→   534→                >
+   535→   535→                  {/* Thumbnail */}
+   536→   536→                  {ad.mediaType !== 'none' && ad.mediaData ? (
+   537→   537→                    <div className="w-12 h-12 rounded-lg overflow-hidden border border-white/10 shrink-0 flex items-center justify-center bg-black/20">
+   538→   538→                      {ad.mediaType === 'video' ? (
+   539→   539→                        <video src={ad.mediaData} className="w-full h-full object-cover" muted />
+   540→   540→                      ) : (
+   541→   541→                        <img src={ad.mediaData} alt="" className="w-full h-full object-cover" />
+   542→   542→                      )}
+   543→   543→                    </div>
+   544→   544→                  ) : (
+   545→   545→                    <div className="w-12 h-12 rounded-lg border border-dashed border-white/10 shrink-0 flex items-center justify-center bg-white/[0.02]">
+   546→   546→                      <span className="text-[9px] text-white/20 text-center leading-tight px-1">Sin<br/>media</span>
+   547→   547→                    </div>
+   548→   548→                  )}
+   549→   549→
+   550→   550→                  <div className="flex-1 min-w-0">
+   551→   551→                    <div className="flex items-center gap-1.5">
+   552→   552→                      <p className="text-sm font-semibold text-white/80 truncate">{ad.text}</p>
+   553→   553→                      {i === activeAdIndex % ads.length && (
+   554→   554→                        <span className="text-[9px] font-bold text-emerald-400 bg-emerald-500/15 px-1.5 py-0.5 rounded-full shrink-0">EN PANTALLA</span>
+   555→   555→                      )}
+   556→   556→                    </div>
+   557→   557→                    <p className="text-[10px] text-white/30 mt-0.5">
+   558→   558→                      {ad.duration}s • {ad.mediaType === 'video' ? '📹 Video' : ad.mediaType === 'image' ? '🖼 Imagen' : '📝 Texto'}
+   559→   559→                    </p>
+   560→   560→                  </div>
+   561→   561→                  <Button
+   562→   562→                    variant="ghost"
+   563→   563→                    size="sm"
+   564→   564→                    className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 text-white/20 hover:text-red-400 shrink-0"
+   565→   565→                    onClick={() => removeAd(ad.id)}
+   566→   566→                  >
+   567→   567→                    <Trash2 className="w-3.5 h-3.5" />
+   568→   568→                  </Button>
+   569→   569→                </div>
+   570→   570→              ))}
+   571→   571→            </div>
+   572→   572→          )}
+   573→   573→        </CardContent>
+   574→   574→      </Card>
+   575→   575→    </div>
+   576→   576→  );
+   577→   577→}
+   578→   578→
+   579→   579→// ── TAB: Skins ─────────────────────────────────────────────────────────────────
+   580→   580→
+   581→   581→function SkinsTab() {
+   582→   582→  const skins = useScoreboardStore((s) => s.skins);
+   583→   583→  const activeSkinId = useScoreboardStore((s) => s.activeSkinId);
+   584→   584→  const addSkin = useScoreboardStore((s) => s.addSkin);
+   585→   585→  const removeSkin = useScoreboardStore((s) => s.removeSkin);
+   586→   586→  const setActiveSkin = useScoreboardStore((s) => s.setActiveSkin);
+   587→   587→  const updateSkin = useScoreboardStore((s) => s.updateSkin);
+   588→   588→  const [creating, setCreating] = useState(false);
+   589→   589→  const [newName, setNewName] = useState('');
+   590→   590→  const [editingId, setEditingId] = useState<string | null>(null);
+   591→   591→  const [editData, setEditData] = useState<Partial<SkinData>>({});
+   592→   592→  const activeSkin = skins.find((s) => s.id === activeSkinId);
+   593→   593→
+   594→   594→  const handleCreate = () => {
+   595→   595→    const skin: SkinData = {
+   596→   596→      id: genId(), name: newName.trim() || 'Nuevo Skin',
+   597→   597→      backgroundColor: '#0c1220', textColor: '#ffffff', scoreColor: '#ffffff',
+   598→   598→      timerColor: '#ffffff', accentColor: '#10b981',
+   599→   599→      panelBackground: 'rgba(255,255,255,0.03)', panelBorder: 'rgba(255,255,255,0.06)',
+   600→   600→    };
+   601→   601→    addSkin(skin);
+   602→   602→    setNewName('');
+   603→   603→    setCreating(false);
+   604→   604→    setEditingId(skin.id);
+   605→   605→    setEditData(skin);
+   606→   606→  };
+   607→   607→
+   608→   608→  return (
+   609→   609→    <div className="space-y-3">
+   610→   610→      {/* Active skin preview */}
+   611→   611→      <Card className="glass-panel rounded-xl">
+   612→   612→        <CardHeader className="pb-2">
+   613→   613→          <CardTitle className="text-sm font-bold text-white/70 uppercase tracking-wider flex items-center gap-2">
+   614→   614→            <Palette className="w-4 h-4" />Skin Activo
+   615→   615→          </CardTitle>
+   616→   616→        </CardHeader>
+   617→   617→        <CardContent>
+   618→   618→          {activeSkin && (
+   619→   619→            <div
+   620→   620→              className="rounded-xl p-4 border transition-all duration-300"
+   621→   621→              style={{ background: activeSkin.backgroundColor, borderColor: activeSkin.panelBorder }}
+   622→   622→            >
+   623→   623→              <div className="flex items-center justify-center gap-4">
+   624→   624→                <span className="text-3xl font-black" style={{ color: activeSkin.scoreColor }}>3</span>
+   625→   625→                <span className="text-xl" style={{ color: `${activeSkin.textColor}20` }}>-</span>
+   626→   626→                <span className="text-3xl font-black" style={{ color: activeSkin.scoreColor }}>1</span>
+   627→   627→              </div>
+   628→   628→              <p className="text-center mt-1 text-sm font-mono" style={{ color: activeSkin.timerColor }}>12:00</p>
+   629→   629→              <p className="text-center mt-1 text-xs" style={{ color: `${activeSkin.textColor}50` }}>{activeSkin.name}</p>
+   630→   630→              <div className="flex justify-center mt-2">
+   631→   631→                <span className="text-[10px] px-2 py-0.5 rounded-full font-bold" style={{ backgroundColor: `${activeSkin.accentColor}20`, color: activeSkin.accentColor }}>
+   632→   632→                  EN VIVO
+   633→   633→                </span>
+   634→   634→              </div>
+   635→   635→            </div>
+   636→   636→          )}
+   637→   637→        </CardContent>
+   638→   638→      </Card>
+   639→   639→
+   640→   640→      {/* Create new skin */}
+   641→   641→      {!creating ? (
+   642→   642→        <Button variant="ghost" className="w-full h-10 border-dashed border-white/10 gap-2 text-white/40 hover:text-white/60 hover:border-white/20" onClick={() => setCreating(true)}>
+   643→   643→          <Plus className="w-4 h-4" />Crear skin
+   644→   644→        </Button>
+   645→   645→      ) : (
+   646→   646→        <Card className="glass-panel rounded-xl border-blue-500/30">
+   647→   647→          <CardContent className="py-3 px-4 flex gap-2 items-end">
+   648→   648→            <div className="flex-1">
+   649→   649→              <Label className="text-xs text-white/50 mb-1 block">Nombre</Label>
+   650→   650→              <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Mi Skin" className="glass-input" autoFocus />
+   651→   651→            </div>
+   652→   652→            <Button size="sm" className="h-9" onClick={handleCreate}>Crear</Button>
+   653→   653→            <Button size="sm" variant="ghost" className="h-9 text-white/40" onClick={() => { setCreating(false); setNewName(''); }}>X</Button>
+   654→   654→          </CardContent>
+   655→   655→        </Card>
+   656→   656→      )}
+   657→   657→
+   658→   658→      {/* Skin list */}
+   659→   659→      <div className="space-y-2">
+   660→   660→        {skins.map((skin) => {
+   661→   661→          const isActive = skin.id === activeSkinId;
+   662→   662→          const isEditing = editingId === skin.id;
+   663→   663→          return (
+   664→   664→            <Card key={skin.id} className={`glass-panel rounded-xl transition-all ${isActive ? 'border-emerald-500/60 ring-2 ring-emerald-500/20' : ''}`}>
+   665→   665→              <CardContent className="py-3 px-4">
+   666→   666→                {isEditing ? (
+   667→   667→                  <div className="space-y-3">
+   668→   668→                    <p className="text-sm font-bold text-white/70">Editando: {skin.name}</p>
+   669→   669→                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+   670→   670→                      <ColorPicker label="Fondo" value={editData.backgroundColor || skin.backgroundColor} onChange={(v) => setEditData({ ...editData, backgroundColor: v })} />
+   671→   671→                      <ColorPicker label="Texto" value={editData.textColor || skin.textColor} onChange={(v) => setEditData({ ...editData, textColor: v })} />
+   672→   672→                      <ColorPicker label="Marcador" value={editData.scoreColor || skin.scoreColor} onChange={(v) => setEditData({ ...editData, scoreColor: v })} />
+   673→   673→                      <ColorPicker label="Timer" value={editData.timerColor || skin.timerColor} onChange={(v) => setEditData({ ...editData, timerColor: v })} />
+   674→   674→                      <ColorPicker label="Acento" value={editData.accentColor || skin.accentColor} onChange={(v) => setEditData({ ...editData, accentColor: v })} />
+   675→   675→                      <div className="flex items-end gap-1">
+   676→   676→                        <Button size="sm" className="h-10 flex-1 gap-1" onClick={() => { updateSkin(skin.id, editData); setEditingId(null); }}>
+   677→   677→                          <Check className="w-3.5 h-3.5" />Guardar
+   678→   678→                        </Button>
+   679→   679→                        <Button size="sm" variant="ghost" className="h-10 text-white/40" onClick={() => { setEditingId(null); }}>X</Button>
+   680→   680→                      </div>
+   681→   681→                    </div>
+   682→   682→                  </div>
+   683→   683→                ) : (
+   684→   684→                  <div className="flex items-center gap-3">
+   685→   685→                    <div
+   686→   686→                      className="w-10 h-10 rounded-lg shrink-0 border border-white/10 flex items-center justify-center text-xs font-bold transition-all duration-300"
+   687→   687→                      style={{ backgroundColor: skin.backgroundColor, color: skin.accentColor }}
+   688→   688→                    >
+   689→   689→                      Aa
+   690→   690→                    </div>
+   691→   691→                    <div className="flex-1 min-w-0">
+   692→   692→                      <p className="text-sm font-semibold text-white/80 truncate">{skin.name}</p>
+   693→   693→                      <div className="flex gap-1 mt-1">
+   694→   694→                        {[skin.backgroundColor, skin.scoreColor, skin.timerColor, skin.accentColor].map((c, i) => (
+   695→   695→                          <div key={i} className="w-3 h-3 rounded-full" style={{ backgroundColor: c }} />
+   696→   696→                        ))}
+   697→   697→                      </div>
+   698→   698→                    </div>
+   699→   699→                    <div className="flex items-center gap-1.5 shrink-0">
+   700→   700→                      {!isActive && (
+   701→   701→                        <Button size="sm" variant="ghost" className="h-8 text-xs gap-1 text-white/50 hover:text-white" onClick={() => setActiveSkin(skin.id)}>
+   702→   702→                          <Check className="w-3 h-3" />Activar
+   703→   703→                        </Button>
+   704→   704→                      )}
+   705→   705→                      {isActive && (
+   706→   706→                        <span className="text-xs font-black tracking-wider text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-1 rounded-full">
+   707→   707→                          ✓ ACTIVO
+   708→   708→                        </span>
+   709→   709→                      )}
+   710→   710→                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-white/30 hover:text-white" onClick={() => { setEditingId(skin.id); setEditData({ ...skin }); }}>
+   711→   711→                        <Settings className="w-3.5 h-3.5" />
+   712→   712→                      </Button>
+   713→   713→                      {skin.id !== 'default' && (
+   714→   714→                        <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-white/20 hover:text-red-400" onClick={() => removeSkin(skin.id)}>
+   715→   715→                          <Trash2 className="w-3.5 h-3.5" />
+   716→   716→                        </Button>
+   717→   717→                      )}
+   718→   718→                    </div>
+   719→   719→                  </div>
+   720→   720→                )}
+   721→   721→              </CardContent>
+   722→   722→            </Card>
+   723→   723→          );
+   724→   724→        })}
+   725→   725→      </div>
+   726→   726→    </div>
+   727→   727→  );
+   728→   728→}
+   729→   729→
+   730→   730→// ── Display Preview Modal ─────────────────────────────────────────────────────
+   731→   731→
+   732→   732→function DisplayPreview({ open, onClose }: { open: boolean; onClose: () => void }) {
+   733→   733→  if (!open) return null;
+   734→   734→
+   735→   735→  return (
+   736→   736→    <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex flex-col">
+   737→   737→      {/* Top bar */}
+   738→   738→      <div className="flex items-center justify-between px-4 py-2 bg-black/50 border-b border-white/10 shrink-0">
+   739→   739→        <div className="flex items-center gap-2">
+   740→   740→          <Eye className="w-4 h-4 text-emerald-400" />
+   741→   741→          <span className="text-xs font-semibold text-white/70">Vista Previa del Marcador — Tiempo Real</span>
+   742→   742→        </div>
+   743→   743→        <div className="flex items-center gap-2">
+   744→   744→          <Button
+   745→   745→            size="sm"
+   746→   746→            variant="ghost"
+   747→   747→            className="text-xs text-white/50 hover:text-white gap-1.5"
+   748→   748→            onClick={() => {
+   749→   749→              const el = document.querySelector('.preview-container');
+   750→   750→              if (el) {
+   751→   751→                if (!document.fullscreenElement) {
+   752→   752→                  el.requestFullscreen().catch(() => {});
+   753→   753→                } else {
+   754→   754→                  document.exitFullscreen();
+   755→   755→                }
+   756→   756→              }
+   757→   757→            }}
+   758→   758→          >
+   759→   759→            <Maximize2 className="w-3.5 h-3.5" />Pantalla Completa
+   760→   760→          </Button>
+   761→   761→          <Button size="sm" variant="ghost" className="text-xs text-white/50 hover:text-white gap-1.5" onClick={onClose}>
+   762→   762→            <X className="w-3.5 h-3.5" />Cerrar
+   763→   763→          </Button>
+   764→   764→        </div>
+   765→   765→      </div>
+   766→   766→
+   767→   767→      {/* Display content */}
+   768→   768→      <div className="flex-1 preview-container overflow-hidden">
+   769→   769→        <StadiumDisplay />
+   770→   770→      </div>
+   771→   771→    </div>
+   772→   772→  );
+   773→   773→}
+   774→   774→
+   775→   775→// ── Main ──────────────────────────────────────────────────────────────────────
+   776→   776→
+   777→   777→export function ControlPanel() {
+   778→   778→  const [showPreview, setShowPreview] = useState(false);
+   779→   779→
+   780→   780→  return (
+   781→   781→    <div className="control-mode min-h-screen">
+   782→   782→      <div className="parallax-bg" />
+   783→   783→      <div className="stadium-bokeh" />
+   784→   784→      <header className="sticky top-0 z-50 bg-[#0a1628]/80 backdrop-blur-xl border-b border-white/[0.06]">
+   785→   785→        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+   786→   786→          <div className="flex items-center gap-3">
+   787→   787→            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center">
+   788→   788→              <span className="text-white font-black text-sm">PF</span>
+   789→   789→            </div>
+   790→   790→            <div>
+   791→   791→              <h1 className="text-base font-bold tracking-tight text-white">Profutbol</h1>
+   792→   792→              <p className="text-[10px] text-white/30 uppercase tracking-wider">Marcador para Canchas</p>
+   793→   793→            </div>
+   794→   794→          </div>
+   795→   795→          <div className="flex items-center gap-2">
+   796→   796→            <Button
+   797→   797→              variant="ghost"
+   798→   798→              size="sm"
+   799→   799→              className="gap-1.5 text-xs text-emerald-400/70 hover:text-emerald-400 hover:bg-emerald-500/10 border border-emerald-500/20"
+   800→   800→              onClick={() => setShowPreview(true)}
+   801→   801→            >
+   802→   802→              <Eye className="w-3.5 h-3.5" />
+   803→   803→              <span className="hidden sm:inline">Vista Previa</span>
+   804→   804→            </Button>
+   805→   805→            <Button
+   806→   806→              variant="ghost"
+   807→   807→              size="sm"
+   808→   808→              className="gap-1.5 text-xs text-white/40 hover:text-white"
+   809→   809→              onClick={() => {
+   810→   810→                const base = window.location.pathname.includes('/Profutbol') ? '/Profutbol' : '';
+   811→   811→                window.open(`${base}/marcador`, '_blank');
+   812→   812→              }}
+   813→   813→            >
+   814→   814→              <Monitor className="w-3.5 h-3.5" />
+   815→   815→              <span className="hidden sm:inline">Abrir Marcador</span>
+   816→   816→            </Button>
+   817→   817→          </div>
+   818→   818→        </div>
+   819→   819→      </header>
+   820→   820→
+   821→   821→      <main className="max-w-4xl mx-auto px-4 py-6 pb-20 relative z-10">
+   822→   822→        <Tabs defaultValue="marcador" className="w-full">
+   823→   823→          <TabsList className="w-full mb-4 bg-white/[0.05] p-1 h-auto border border-white/[0.06] rounded-xl">
+   824→   824→            <TabsTrigger value="equipos" className="flex-1 gap-1.5 py-2.5 text-xs text-white/40 data-[state=active]:bg-white/[0.08] data-[state=active]:text-white rounded-lg"><Settings className="w-3.5 h-3.5" />Equipos</TabsTrigger>
+   825→   825→            <TabsTrigger value="marcador" className="flex-1 gap-1.5 py-2.5 text-xs text-white/40 data-[state=active]:bg-white/[0.08] data-[state=active]:text-white rounded-lg"><Trophy className="w-3.5 h-3.5" />Marcador</TabsTrigger>
+   826→   826→            <TabsTrigger value="eventos" className="flex-1 gap-1.5 py-2.5 text-xs text-white/40 data-[state=active]:bg-white/[0.08] data-[state=active]:text-white rounded-lg"><List className="w-3.5 h-3.5" />Eventos</TabsTrigger>
+   827→   827→            <TabsTrigger value="publicidad" className="flex-1 gap-1.5 py-2.5 text-xs text-white/40 data-[state=active]:bg-white/[0.08] data-[state=active]:text-white rounded-lg"><Megaphone className="w-3.5 h-3.5" />Ads</TabsTrigger>
+   828→   828→            <TabsTrigger value="skins" className="flex-1 gap-1.5 py-2.5 text-xs text-white/40 data-[state=active]:bg-white/[0.08] data-[state=active]:text-white rounded-lg"><Palette className="w-3.5 h-3.5" />Skins</TabsTrigger>
+   829→   829→          </TabsList>
+   830→   830→          <TabsContent value="equipos"><EquiposTab /></TabsContent>
+   831→   831→          <TabsContent value="marcador"><ScoreTab /></TabsContent>
+   832→   832→          <TabsContent value="eventos"><EventsTab /></TabsContent>
+   833→   833→          <TabsContent value="publicidad"><PublicidadTab /></TabsContent>
+   834→   834→          <TabsContent value="skins"><SkinsTab /></TabsContent>
+   835→   835→        </Tabs>
+   836→   836→      </main>
+   837→   837→
+   838→   838→      <footer className="fixed bottom-0 left-0 right-0 bg-[#0a1628]/80 backdrop-blur-xl border-t border-white/[0.06] z-50">
+   839→   839→        <div className="max-w-4xl mx-auto px-4 py-2 flex items-center justify-between">
+   840→   840→          <p className="text-[10px] text-white/20">Profutbol v1.0 — Marcador para Canchas</p>
+   841→   841→          <p className="text-[10px] text-white/20">Fútbol 5 / 7 / 8 / 11</p>
+   842→   842→        </div>
+   843→   843→      </footer>
+   844→   844→
+   845→   845→      {/* Live Preview Overlay */}
+   846→   846→      <DisplayPreview open={showPreview} onClose={() => setShowPreview(false)} />
+   847→   847→    </div>
+   848→   848→  );
+   849→   849→}
