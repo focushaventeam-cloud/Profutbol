@@ -445,3 +445,28 @@ Stage Summary:
 - Flow: Create screen → Select it → Control directly from Pantallas tab → Deploy display to TV (no interaction)
 - QR code still available for mobile phone access to /control-remoto
 - The /control-remoto page still exists for phone-based control via QR scan
+---
+Task ID: 13
+Agent: Main Agent
+Task: Finalize remote control refactor — delete /control-remoto page, update QR to panel, clean refs
+
+Work Log:
+- Synced diverged git branches (3 local vs 1 remote) via rebase, resolved .nojekyll conflict, pushed
+- Deleted /src/app/control-remoto/ directory entirely (page no longer needed)
+- Updated QR code URL in ScreensTab: now points to `?screen=ID` on the main panel instead of `/control-remoto?screen=ID`
+- Updated QR dialog title from "Control Remoto" to "Control por QR" and description to explain it opens the control panel
+- Updated main page.tsx: added useSearchParams to auto-select screen when opened from QR code (`?screen=ID` parameter)
+- Wrapped page export in Suspense for useSearchParams compatibility
+- Used queueMicrotask for setState in effect to pass ESLint react-hooks/set-state-in-effect rule
+- Removed onOpenRemote prop from ScreenCard (was a no-op after previous refactor)
+- ESLint passes clean
+- Dev server compiles successfully (GET / 200 in 5.7s)
+- Committed: "Refactor: mover control remoto al panel de control, eliminar pagina separada"
+- Pushed to origin/main
+
+Stage Summary:
+- /control-remoto page DELETED — all remote control is now inside the control panel (ScreensTab > InlineRemoteControl)
+- /marcador page is purely display-only (was already cleaned in previous session)
+- QR codes now open the main control panel with ?screen=ID, auto-selecting the screen
+- Zero references to "control-remoto" remain in src/
+- Pushed to GitHub successfully
